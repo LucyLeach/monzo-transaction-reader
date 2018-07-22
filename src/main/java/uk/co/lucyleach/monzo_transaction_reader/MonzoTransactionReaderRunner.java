@@ -36,6 +36,7 @@ public class MonzoTransactionReaderRunner
     Properties props = propsReader.readProperties(pathToProps);
     String clientId = props.getProperty("client_id");
     String clientSecret = props.getProperty("client_secret");
+    String accountId = props.getProperty("account_id");
 
     FileDataStoreFactory dataStoreFactory = new FileDataStoreFactory(new File(pathToCredentialStore));
     DataStore<StoredCredential> dataStore = StoredCredential.getDefaultDataStore(dataStoreFactory);
@@ -57,14 +58,17 @@ public class MonzoTransactionReaderRunner
 
     try
     {
-      String whoAmIURL = "https://api.monzo.com/ping/whoami";
+      String transactionUrl = "https://api.monzo.com/transactions";
       HttpRequestFactory requestFactory = httpTransport.createRequestFactory(request -> {
         credential.initialize(request);
         request.setParser(new JsonObjectParser(jsonFactory));
       });
-      HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(whoAmIURL));
+      GenericUrl transactionsUrlObject = new GenericUrl(transactionUrl);
+      transactionsUrlObject.set("account_id", accountId);
+      transactionsUrlObject.set("expand[]", "merchant");
+      HttpRequest request = requestFactory.buildGetRequest(transactionsUrlObject);
       HttpResponse response = request.execute();
-      WhoAmIResponse whoAmIResponse = response.parseAs(WhoAmIResponse.class);
+      TransactionList transactionList = response.parseAs(TransactionList.class);
       int debug = 1;
     } finally
     {
