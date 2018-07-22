@@ -11,9 +11,9 @@ import java.util.Properties;
  * Date: 21/07/2018
  * Time: 21:05
  */
-public class PropertiesReader_File
+class PropertiesReader_File
 {
-  public Properties readProperties(String filePath) throws IOException
+  Properties readProperties(String filePath) throws IOException
   {
     try (InputStream stream = Files.newInputStream(Paths.get(filePath)))
     {
