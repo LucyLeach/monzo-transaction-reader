@@ -20,20 +20,14 @@ public class MonzoTransactionReaderRunner
   private final CredentialLoader credentialLoader;
   private final TransactionLoader transactionLoader;
 
-  private MonzoTransactionReaderRunner(String pathToDataStore) {
+  private MonzoTransactionReaderRunner(String pathToDataStore) throws IOException
+  {
     HttpTransport httpTransport = new NetHttpTransport();
     JsonFactory jsonFactory = new JacksonFactory();
 
     this.clientAccountDetailsReader = new ClientAccountDetailsReader();
     this.credentialLoader = new CredentialLoader(httpTransport, jsonFactory, pathToDataStore);
     this.transactionLoader = new TransactionLoader(httpTransport, jsonFactory);
-  }
-
-  MonzoTransactionReaderRunner(ClientAccountDetailsReader clientAccountDetailsReader, CredentialLoader credentialLoader, TransactionLoader transactionLoader)
-  {
-    this.clientAccountDetailsReader = clientAccountDetailsReader;
-    this.credentialLoader = credentialLoader;
-    this.transactionLoader = transactionLoader;
   }
 
   public static void main(String[] args) throws Exception

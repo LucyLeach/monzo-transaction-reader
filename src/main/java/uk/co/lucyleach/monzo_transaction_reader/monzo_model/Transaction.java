@@ -17,6 +17,9 @@ public class Transaction
   private int amount; //NB pence, -ve if money removed from account
 
   @Key
+  private String currency;
+
+  @Key
   private String created;
 
   @Key

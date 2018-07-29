@@ -9,6 +9,7 @@ import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.store.DataStore;
+import com.google.api.client.util.store.DataStoreFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 
 import java.io.File;
@@ -25,18 +26,17 @@ class CredentialLoader
 {
   private final HttpTransport httpTransport;
   private final JsonFactory jsonFactory;
-  private final String pathToDataStore;
+  private final DataStoreFactory dataStoreFactory;
 
-  CredentialLoader(HttpTransport httpTransport, JsonFactory jsonFactory, String pathToDataStore)
+  CredentialLoader(HttpTransport httpTransport, JsonFactory jsonFactory, String pathToDataStore) throws IOException
   {
     this.httpTransport = httpTransport;
     this.jsonFactory = jsonFactory;
-    this.pathToDataStore = pathToDataStore;
+    this.dataStoreFactory = createFileDataStoreFactory(pathToDataStore);
   }
 
   Credential load(String clientId, String clientSecret) throws IOException
   {
-    FileDataStoreFactory dataStoreFactory = new FileDataStoreFactory(new File(pathToDataStore));
     DataStore<StoredCredential> dataStore = StoredCredential.getDefaultDataStore(dataStoreFactory);
     String dataStoreKey = "lleach-monzo-credentials";
     StoredCredential storedCredential = dataStore.get(dataStoreKey);
@@ -54,5 +54,10 @@ class CredentialLoader
     credential.setAccessToken(accessToken);
 
     return credential;
+  }
+
+  private static DataStoreFactory createFileDataStoreFactory(String pathToDataStore) throws IOException
+  {
+    return new FileDataStoreFactory(new File(pathToDataStore));
   }
 }
