@@ -1,17 +1,15 @@
-package uk.co.lucyleach.monzo_transaction_reader;
+package uk.co.lucyleach.monzo_transaction_reader.monzo_model;
 
 import com.google.api.client.util.Key;
-
-import java.util.List;
 
 /**
  * User: Lucy
  * Date: 22/07/2018
- * Time: 20:41
+ * Time: 20:50
  */
 @SuppressWarnings("WeakerAccess") //Class must be public to be used by Jackson
-public class TransactionList
+public class Merchant
 {
   @Key
-  private List<Transaction> transactions;
+  private String name;
 }

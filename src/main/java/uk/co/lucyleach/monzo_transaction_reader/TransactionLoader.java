@@ -4,6 +4,7 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.http.*;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonObjectParser;
+import uk.co.lucyleach.monzo_transaction_reader.monzo_model.TransactionList;
 
 import java.io.IOException;
 

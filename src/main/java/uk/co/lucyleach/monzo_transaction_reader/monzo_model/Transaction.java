@@ -1,4 +1,4 @@
-package uk.co.lucyleach.monzo_transaction_reader;
+package uk.co.lucyleach.monzo_transaction_reader.monzo_model;
 
 import com.google.api.client.util.Key;
 
