@@ -8,7 +8,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.DataStoreFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 
@@ -37,13 +36,13 @@ class CredentialLoader
 
   Credential load(String clientId, String clientSecret) throws IOException
   {
-    DataStore<StoredCredential> dataStore = StoredCredential.getDefaultDataStore(dataStoreFactory);
-    String dataStoreKey = "lleach-monzo-credentials";
-    StoredCredential storedCredential = dataStore.get(dataStoreKey);
-    String refreshToken = storedCredential.getRefreshToken();
-    String accessToken = storedCredential.getAccessToken();
+    var dataStore = StoredCredential.getDefaultDataStore(dataStoreFactory);
+    var dataStoreKey = "lleach-monzo-credentials";
+    var storedCredential = dataStore.get(dataStoreKey);
+    var refreshToken = storedCredential.getRefreshToken();
+    var accessToken = storedCredential.getAccessToken();
 
-    Credential credential = new GoogleCredential.Builder()
+    var credential = new GoogleCredential.Builder()
         .setTransport(httpTransport)
         .setJsonFactory(jsonFactory)
         .setClientAuthentication(new ClientParametersAuthentication(clientId, clientSecret))

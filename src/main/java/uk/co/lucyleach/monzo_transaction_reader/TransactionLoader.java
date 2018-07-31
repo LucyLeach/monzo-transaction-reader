@@ -26,16 +26,16 @@ class TransactionLoader
 
   TransactionList load(Credential credential, String accountId) throws IOException
   {
-    String transactionUrl = "https://api.monzo.com/transactions";
-    HttpRequestFactory requestFactory = httpTransport.createRequestFactory(request -> {
+    var transactionUrl = "https://api.monzo.com/transactions";
+    var requestFactory = httpTransport.createRequestFactory(request -> {
       credential.initialize(request);
       request.setParser(new JsonObjectParser(jsonFactory));
     });
-    GenericUrl transactionsUrlObject = new GenericUrl(transactionUrl);
+    var transactionsUrlObject = new GenericUrl(transactionUrl);
     transactionsUrlObject.set("account_id", accountId);
     transactionsUrlObject.set("expand[]", "merchant");
-    HttpRequest request = requestFactory.buildGetRequest(transactionsUrlObject);
-    HttpResponse response = request.execute();
+    var request = requestFactory.buildGetRequest(transactionsUrlObject);
+    var response = request.execute();
     return response.parseAs(TransactionList.class);
   }
 }

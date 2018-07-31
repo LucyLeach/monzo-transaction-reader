@@ -15,21 +15,21 @@ class ClientAccountDetailsReader
 {
   ClientAccountDetails read(String filePath) throws IOException
   {
-    Properties properties = new Properties();
+    var properties = new Properties();
     try (InputStream stream = Files.newInputStream(Paths.get(filePath)))
     {
       properties.load(stream);
     }
 
-    String clientId = readNonNullProperty("client_id", properties, filePath);
-    String clientSecret = readNonNullProperty("client_secret", properties, filePath);
-    String accountId = readNonNullProperty("account_id", properties, filePath);
+    var clientId = readNonNullProperty("client_id", properties, filePath);
+    var clientSecret = readNonNullProperty("client_secret", properties, filePath);
+    var accountId = readNonNullProperty("account_id", properties, filePath);
     return new ClientAccountDetails(clientId, clientSecret, accountId);
   }
 
   private String readNonNullProperty(String propertyName, Properties properties, String filePath) throws IOException
   {
-    String property = properties.getProperty(propertyName);
+    var property = properties.getProperty(propertyName);
     if (property == null)
       throw new IOException("Client ID not found in properties file: " + filePath);
     else

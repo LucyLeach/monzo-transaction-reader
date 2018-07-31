@@ -3,8 +3,6 @@ apply plugin: 'java'
 group = 'uk.co.lucyleach.monzo-transaction-reader'
 version = '1.0.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
-
 repositories {
     mavenCentral()
 }

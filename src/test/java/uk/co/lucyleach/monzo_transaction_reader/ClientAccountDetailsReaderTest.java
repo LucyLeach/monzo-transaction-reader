@@ -23,8 +23,8 @@ public class ClientAccountDetailsReaderTest
   @Test
   public void testFullPropertiesFile() throws Exception
   {
-    String testPropertiesFile = propertiesFileByTestName("full");
-    ClientAccountDetails details = UNDER_TEST.read(testPropertiesFile);
+    var testPropertiesFile = propertiesFileByTestName("full");
+    var details = UNDER_TEST.read(testPropertiesFile);
     assertNotNull("Should never return null", details);
     assertEquals(EXPECTED_CLIENT_ID, details.getClientId());
     assertEquals(EXPECTED_CLIENT_SECRET, details.getClientSecret());
@@ -34,28 +34,28 @@ public class ClientAccountDetailsReaderTest
   @Test
   public void testMissingClientId() throws Exception
   {
-    String missingProperty = "client_id";
+    var missingProperty = "client_id";
     testMissingPropertyError(missingProperty);
   }
 
   @Test
   public void testMissingClientSecret() throws Exception
   {
-    String missingProperty = "client_secret";
+    var missingProperty = "client_secret";
     testMissingPropertyError(missingProperty);
   }
 
   @Test
   public void testMissingAccountId() throws Exception
   {
-    String missingProperty = "account_id";
+    var missingProperty = "account_id";
     testMissingPropertyError(missingProperty);
   }
 
   @Test
   public void testEmptyFile() throws Exception
   {
-    String testPropertiesFile = propertiesFileByTestName("empty");
+    var testPropertiesFile = propertiesFileByTestName("empty");
     try {
       UNDER_TEST.read(testPropertiesFile);
       fail("Should have thrown exception");
@@ -66,7 +66,7 @@ public class ClientAccountDetailsReaderTest
 
   private void testMissingPropertyError(String missingProperty) throws URISyntaxException
   {
-    String testPropertiesFile = propertiesFileByTestName("missing_" + missingProperty);
+    var testPropertiesFile = propertiesFileByTestName("missing_" + missingProperty);
     try {
       UNDER_TEST.read(testPropertiesFile);
       fail("Should have thrown exception");

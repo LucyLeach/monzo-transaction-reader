@@ -1,11 +1,9 @@
 package uk.co.lucyleach.monzo_transaction_reader;
 
-import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import uk.co.lucyleach.monzo_transaction_reader.monzo_model.TransactionList;
 
 import java.io.IOException;
 
@@ -36,18 +34,18 @@ public class MonzoTransactionReaderRunner
       throw new Exception("Need to supply two arguments: path to properties file, path to credential store");
     }
 
-    String pathToProps = args[0];
-    String pathToCredentialDataStore = args[1];
+    var pathToProps = args[0];
+    var pathToCredentialDataStore = args[1];
 
-    MonzoTransactionReaderRunner runner = new MonzoTransactionReaderRunner(pathToCredentialDataStore);
+    var runner = new MonzoTransactionReaderRunner(pathToCredentialDataStore);
     runner.run(pathToProps);
   }
 
   private void run(String pathToProps) throws IOException
   {
-    ClientAccountDetails props = clientAccountDetailsReader.read(pathToProps);
-    Credential credential = credentialLoader.load(props.getClientId(), props.getClientSecret());
-    TransactionList transactionList = transactionLoader.load(credential, props.getAccountId());
-    int debug = 1;
+    var props = clientAccountDetailsReader.read(pathToProps);
+    var credential = credentialLoader.load(props.getClientId(), props.getClientSecret());
+    var transactionList = transactionLoader.load(credential, props.getAccountId());
+    var debug = 1;
   }
 }
