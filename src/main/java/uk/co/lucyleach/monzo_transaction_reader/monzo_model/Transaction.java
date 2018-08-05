@@ -33,4 +33,20 @@ public class Transaction
 
   @Key
   private Counterparty counterparty;
+
+  public Transaction(String id, int amount, String currency, String created, String notes, Merchant merchant, String description, Counterparty counterparty)
+  {
+    this.id = id;
+    this.amount = amount;
+    this.currency = currency;
+    this.created = created;
+    this.notes = notes;
+    this.merchant = merchant;
+    this.description = description;
+    this.counterparty = counterparty;
+  }
+
+  public Transaction()
+  {
+  }
 }

@@ -13,4 +13,22 @@ public class TransactionList
 {
   @Key
   private List<Transaction> transactions;
+
+  public TransactionList(Transaction... transactions) {
+    this(List.of(transactions));
+  }
+
+  public TransactionList(List<Transaction> transactions)
+  {
+    this.transactions = transactions;
+  }
+
+  public TransactionList()
+  {
+  }
+
+  public List<Transaction> getTransactions()
+  {
+    return transactions == null ? List.of() : List.copyOf(transactions);
+  }
 }

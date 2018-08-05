@@ -12,4 +12,13 @@ public class Merchant
 {
   @Key
   private String name;
+
+  public Merchant(String name)
+  {
+    this.name = name;
+  }
+
+  public Merchant()
+  {
+  }
 }
