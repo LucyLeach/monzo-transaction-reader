@@ -1,6 +1,6 @@
 package uk.co.lucyleach.monzo_transaction_reader.output_model;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * User: Lucy
@@ -12,7 +12,7 @@ public class TransferIn extends ProcessedTransaction
   private final String whereTransferredFrom;
   private final boolean expectedTransfer;
 
-  public TransferIn(String monzoId, LocalDateTime dateTime, Money amount, String whereTransferredFrom, boolean expectedTransfer)
+  public TransferIn(String monzoId, ZonedDateTime dateTime, Money amount, String whereTransferredFrom, boolean expectedTransfer)
   {
     super(monzoId, dateTime, amount);
     this.whereTransferredFrom = whereTransferredFrom;

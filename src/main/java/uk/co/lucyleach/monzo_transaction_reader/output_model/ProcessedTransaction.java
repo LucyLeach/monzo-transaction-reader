@@ -1,6 +1,6 @@
 package uk.co.lucyleach.monzo_transaction_reader.output_model;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * User: Lucy
@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 public abstract class ProcessedTransaction
 {
   private final String monzoId;
-  private final LocalDateTime dateTime;
+  private final ZonedDateTime dateTime;
   private final Money amount;
 
-  ProcessedTransaction(String monzoId, LocalDateTime dateTime, Money amount)
+  ProcessedTransaction(String monzoId, ZonedDateTime dateTime, Money amount)
   {
     this.monzoId = monzoId;
     this.dateTime = dateTime;
@@ -25,7 +25,7 @@ public abstract class ProcessedTransaction
     return monzoId;
   }
 
-  public LocalDateTime getDateTime()
+  public ZonedDateTime getDateTime()
   {
     return dateTime;
   }
