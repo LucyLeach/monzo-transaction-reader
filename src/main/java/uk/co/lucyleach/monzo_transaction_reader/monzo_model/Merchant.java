@@ -8,17 +8,14 @@ import com.google.api.client.util.Key;
  * Time: 20:50
  */
 @SuppressWarnings("WeakerAccess") //Class must be public to be used by Jackson
-public class Merchant
-{
+public class Merchant {
   @Key
   private String name;
 
-  public Merchant(String name)
-  {
+  public Merchant(String name) {
     this.name = name;
   }
 
-  public Merchant()
-  {
+  public Merchant() {
   }
 }

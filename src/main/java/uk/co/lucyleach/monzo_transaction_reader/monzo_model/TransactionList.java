@@ -9,8 +9,7 @@ import java.util.List;
  * Date: 22/07/2018
  * Time: 20:41
  */
-public class TransactionList
-{
+public class TransactionList {
   @Key
   private List<Transaction> transactions;
 
@@ -18,17 +17,14 @@ public class TransactionList
     this(List.of(transactions));
   }
 
-  public TransactionList(List<Transaction> transactions)
-  {
+  public TransactionList(List<Transaction> transactions) {
     this.transactions = transactions;
   }
 
-  public TransactionList()
-  {
+  public TransactionList() {
   }
 
-  public List<Transaction> getTransactions()
-  {
+  public List<Transaction> getTransactions() {
     return transactions == null ? List.of() : List.copyOf(transactions);
   }
 }

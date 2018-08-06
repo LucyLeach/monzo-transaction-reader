@@ -21,21 +21,18 @@ import static com.google.common.collect.Lists.newArrayList;
  * Date: 28/07/2018
  * Time: 20:57
  */
-class CredentialLoader
-{
+class CredentialLoader {
   private final HttpTransport httpTransport;
   private final JsonFactory jsonFactory;
   private final DataStoreFactory dataStoreFactory;
 
-  CredentialLoader(HttpTransport httpTransport, JsonFactory jsonFactory, String pathToDataStore) throws IOException
-  {
+  CredentialLoader(HttpTransport httpTransport, JsonFactory jsonFactory, String pathToDataStore) throws IOException {
     this.httpTransport = httpTransport;
     this.jsonFactory = jsonFactory;
     this.dataStoreFactory = createFileDataStoreFactory(pathToDataStore);
   }
 
-  Credential load(String clientId, String clientSecret) throws IOException
-  {
+  Credential load(String clientId, String clientSecret) throws IOException {
     var dataStore = StoredCredential.getDefaultDataStore(dataStoreFactory);
     var dataStoreKey = "lleach-monzo-credentials";
     var storedCredential = dataStore.get(dataStoreKey);
@@ -55,8 +52,7 @@ class CredentialLoader
     return credential;
   }
 
-  private static DataStoreFactory createFileDataStoreFactory(String pathToDataStore) throws IOException
-  {
+  private static DataStoreFactory createFileDataStoreFactory(String pathToDataStore) throws IOException {
     return new FileDataStoreFactory(new File(pathToDataStore));
   }
 }

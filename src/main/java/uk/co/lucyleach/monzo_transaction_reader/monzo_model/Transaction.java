@@ -8,8 +8,7 @@ import com.google.api.client.util.Key;
  * Time: 20:39
  */
 @SuppressWarnings("WeakerAccess") //Class must be public to be used by Jackson
-public class Transaction
-{
+public class Transaction {
   @Key
   private String id;
 
@@ -34,8 +33,7 @@ public class Transaction
   @Key
   private Counterparty counterparty;
 
-  public Transaction(String id, int amount, String currency, String created, String notes, Merchant merchant, String description, Counterparty counterparty)
-  {
+  public Transaction(String id, int amount, String currency, String created, String notes, Merchant merchant, String description, Counterparty counterparty) {
     this.id = id;
     this.amount = amount;
     this.currency = currency;
@@ -46,47 +44,38 @@ public class Transaction
     this.counterparty = counterparty;
   }
 
-  public Transaction()
-  {
+  public Transaction() {
   }
 
-  public String getId()
-  {
+  public String getId() {
     return id;
   }
 
-  public int getAmount()
-  {
+  public int getAmount() {
     return amount;
   }
 
-  public String getCurrency()
-  {
+  public String getCurrency() {
     return currency;
   }
 
-  public String getCreated()
-  {
+  public String getCreated() {
     return created;
   }
 
-  public String getNotes()
-  {
+  public String getNotes() {
     return notes;
   }
 
-  public Merchant getMerchant()
-  {
+  public Merchant getMerchant() {
     return merchant;
   }
 
-  public String getDescription()
-  {
+  public String getDescription() {
     return description;
   }
 
-  public Counterparty getCounterparty()
-  {
+  public Counterparty getCounterparty() {
     return counterparty;
   }
 }

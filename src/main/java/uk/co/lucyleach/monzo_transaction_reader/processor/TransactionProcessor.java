@@ -14,8 +14,7 @@ import static java.util.stream.Collectors.toList;
  * Date: 05/08/2018
  * Time: 20:28
  */
-public class TransactionProcessor
-{
+public class TransactionProcessor {
   public TransactionProcessorResult process(TransactionList transactions) {
     var unimplementedTransactions = transactions.getTransactions().stream()
         .map(notImplementedResult())

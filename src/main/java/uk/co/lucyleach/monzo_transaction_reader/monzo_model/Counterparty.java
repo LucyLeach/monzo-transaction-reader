@@ -8,20 +8,17 @@ import com.google.api.client.util.Key;
  * Time: 20:58
  */
 @SuppressWarnings("WeakerAccess") //Class must be public to be used by Jackson
-public class Counterparty
-{
+public class Counterparty {
   @Key("account_number")
   private int accountNumber;
 
   @Key("sort_code")
   private int sortCode;
 
-  public Counterparty()
-  {
+  public Counterparty() {
   }
 
-  public Counterparty(int accountNumber, int sortCode)
-  {
+  public Counterparty(int accountNumber, int sortCode) {
     this.accountNumber = accountNumber;
     this.sortCode = sortCode;
   }

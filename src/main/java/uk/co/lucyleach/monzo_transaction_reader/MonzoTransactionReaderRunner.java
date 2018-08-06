@@ -12,14 +12,12 @@ import java.io.IOException;
  * Date: 22/07/2018
  * Time: 10:24
  */
-public class MonzoTransactionReaderRunner
-{
+public class MonzoTransactionReaderRunner {
   private final ClientAccountDetailsReader clientAccountDetailsReader;
   private final CredentialLoader credentialLoader;
   private final TransactionLoader transactionLoader;
 
-  private MonzoTransactionReaderRunner(String pathToDataStore) throws IOException
-  {
+  private MonzoTransactionReaderRunner(String pathToDataStore) throws IOException {
     HttpTransport httpTransport = new NetHttpTransport();
     JsonFactory jsonFactory = new JacksonFactory();
 
@@ -28,8 +26,14 @@ public class MonzoTransactionReaderRunner
     this.transactionLoader = new TransactionLoader(httpTransport, jsonFactory);
   }
 
-  public static void main(String[] args) throws Exception
-  {
+  private void run(String pathToProps) throws IOException {
+    var props = clientAccountDetailsReader.read(pathToProps);
+    var credential = credentialLoader.load(props.getClientId(), props.getClientSecret());
+    var transactionList = transactionLoader.load(credential, props.getAccountId());
+    var debug = 1;
+  }
+
+  public static void main(String[] args) throws Exception {
     if(args.length < 2 || args[0] == null || args[1] == null) {
       throw new Exception("Need to supply two arguments: path to properties file, path to credential store");
     }
@@ -39,13 +43,5 @@ public class MonzoTransactionReaderRunner
 
     var runner = new MonzoTransactionReaderRunner(pathToCredentialDataStore);
     runner.run(pathToProps);
-  }
-
-  private void run(String pathToProps) throws IOException
-  {
-    var props = clientAccountDetailsReader.read(pathToProps);
-    var credential = credentialLoader.load(props.getClientId(), props.getClientSecret());
-    var transactionList = transactionLoader.load(credential, props.getAccountId());
-    var debug = 1;
   }
 }

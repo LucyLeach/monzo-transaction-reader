@@ -14,7 +14,10 @@ import uk.co.lucyleach.monzo_transaction_reader.output_model.SaleTransaction;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,8 +31,7 @@ import static org.junit.Assert.*;
  * Time: 20:37
  */
 @Ignore
-public class TransactionProcessorTest
-{
+public class TransactionProcessorTest {
   private static final TransactionProcessor UNDER_TEST = new TransactionProcessor();
 
   @Test
@@ -122,18 +124,6 @@ public class TransactionProcessorTest
     testForUnsuccessfulResults(inputSet, result);
   }
 
-  private static void testForUnsuccessfulResults(Set<Transaction> inputSet, TransactionProcessorResult result)
-  {
-    var unsuccessfulTransactions = result.getUnsuccessfulResults().stream().map(UnsuccessfulProcessorResult::getOriginalTransaction).collect(toSet());
-    assertEquals("Should have same number of unsuccessful transactions as input", inputSet.size(), unsuccessfulTransactions.size());
-    assertTrue("Inputs missing or changed", unsuccessfulTransactions.containsAll(inputSet));
-  }
-
-  private static Transaction createSimpleSaleTransaction(String testName, String notes, int totalAmount) {
-    var dateString = "2018-01-02T08:00:00.0Z";
-    return new Transaction(testName, totalAmount, "GBP", dateString, notes, new Merchant("A Merchant"), "Description", null);
-  }
-
   @Test
   public void testUnimplementedTransactionTypes() {
     var dateString = "2018-01-03T08:00:00.0Z";
@@ -149,8 +139,18 @@ public class TransactionProcessorTest
     testForUnsuccessfulResults(Set.of(potTransferIn, potTransferOut, bankTransferIn, bankTransferOut), result);
   }
 
-  private static void checkNoUnsuccessfulResults(TransactionProcessorResult result)
-  {
+  private static void testForUnsuccessfulResults(Set<Transaction> inputSet, TransactionProcessorResult result) {
+    var unsuccessfulTransactions = result.getUnsuccessfulResults().stream().map(UnsuccessfulProcessorResult::getOriginalTransaction).collect(toSet());
+    assertEquals("Should have same number of unsuccessful transactions as input", inputSet.size(), unsuccessfulTransactions.size());
+    assertTrue("Inputs missing or changed", unsuccessfulTransactions.containsAll(inputSet));
+  }
+
+  private static Transaction createSimpleSaleTransaction(String testName, String notes, int totalAmount) {
+    var dateString = "2018-01-02T08:00:00.0Z";
+    return new Transaction(testName, totalAmount, "GBP", dateString, notes, new Merchant("A Merchant"), "Description", null);
+  }
+
+  private static void checkNoUnsuccessfulResults(TransactionProcessorResult result) {
     assertEquals("There should be no unsuccessful results", 0, result.getUnsuccessfulResults().size());
   }
 
@@ -207,8 +207,7 @@ public class TransactionProcessorTest
     return new SuccessfulProcessorResult(inputTransaction, outputTransactions);
   }
 
-  private static void checkForNulls(TransactionProcessorResult result)
-  {
+  private static void checkForNulls(TransactionProcessorResult result) {
     assertNotNull("Should return non null result", result);
     assertNotNull("Should return non null successful results list", result.getSuccessfulResults());
     assertNotNull("Should return non null unsuccessful results list", result.getUnsuccessfulResults());

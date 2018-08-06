@@ -11,13 +11,10 @@ import java.util.Properties;
  * Date: 21/07/2018
  * Time: 21:05
  */
-class ClientAccountDetailsReader
-{
-  ClientAccountDetails read(String filePath) throws IOException
-  {
+class ClientAccountDetailsReader {
+  ClientAccountDetails read(String filePath) throws IOException {
     var properties = new Properties();
-    try (InputStream stream = Files.newInputStream(Paths.get(filePath)))
-    {
+    try(InputStream stream = Files.newInputStream(Paths.get(filePath))) {
       properties.load(stream);
     }
 
@@ -27,10 +24,9 @@ class ClientAccountDetailsReader
     return new ClientAccountDetails(clientId, clientSecret, accountId);
   }
 
-  private String readNonNullProperty(String propertyName, Properties properties, String filePath) throws IOException
-  {
+  private String readNonNullProperty(String propertyName, Properties properties, String filePath) throws IOException {
     var property = properties.getProperty(propertyName);
-    if (property == null)
+    if(property == null)
       throw new IOException("Client ID not found in properties file: " + filePath);
     else
       return property;

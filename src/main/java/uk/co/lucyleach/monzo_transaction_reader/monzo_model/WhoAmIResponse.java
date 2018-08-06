@@ -8,8 +8,7 @@ import com.google.api.client.util.Key;
  * Time: 20:16
  */
 @SuppressWarnings("WeakerAccess") //Class must be public to be used by Jackson
-public class WhoAmIResponse
-{
+public class WhoAmIResponse {
   @Key
   private boolean authenticated;
 
