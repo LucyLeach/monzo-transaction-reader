@@ -49,4 +49,44 @@ public class Transaction
   public Transaction()
   {
   }
+
+  public String getId()
+  {
+    return id;
+  }
+
+  public int getAmount()
+  {
+    return amount;
+  }
+
+  public String getCurrency()
+  {
+    return currency;
+  }
+
+  public String getCreated()
+  {
+    return created;
+  }
+
+  public String getNotes()
+  {
+    return notes;
+  }
+
+  public Merchant getMerchant()
+  {
+    return merchant;
+  }
+
+  public String getDescription()
+  {
+    return description;
+  }
+
+  public Counterparty getCounterparty()
+  {
+    return counterparty;
+  }
 }

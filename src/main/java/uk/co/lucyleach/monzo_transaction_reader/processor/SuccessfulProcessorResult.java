@@ -10,9 +10,9 @@ import java.util.Collection;
  * Date: 29/07/2018
  * Time: 21:27
  */
-class SuccessfulProcessorResult extends Pair<Transaction, Collection<ProcessedTransaction>>
+class SuccessfulProcessorResult extends Pair<Transaction, Collection<? extends ProcessedTransaction>>
 {
-  protected SuccessfulProcessorResult(Transaction transaction, Collection<ProcessedTransaction> processedTransactions)
+  protected SuccessfulProcessorResult(Transaction transaction, Collection<? extends ProcessedTransaction> processedTransactions)
   {
     super(transaction, processedTransactions);
   }
@@ -22,7 +22,7 @@ class SuccessfulProcessorResult extends Pair<Transaction, Collection<ProcessedTr
     return getA();
   }
 
-  public Collection<ProcessedTransaction> getProcessedTransactions()
+  public Collection<? extends ProcessedTransaction> getProcessedTransactions()
   {
     return getB();
   }
