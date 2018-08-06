@@ -7,25 +7,21 @@ import java.time.ZonedDateTime;
  * Date: 29/07/2018
  * Time: 21:11
  */
-public class TransferOut extends ProcessedTransaction
-{
+public class TransferOut extends ProcessedTransaction {
   private final String whereTransferredTo;
   private final String tag;
 
-  public TransferOut(String monzoId, ZonedDateTime dateTime, Money amount, String whereTransferredTo, String tag)
-  {
+  public TransferOut(String monzoId, ZonedDateTime dateTime, Money amount, String whereTransferredTo, String tag) {
     super(monzoId, dateTime, amount);
     this.whereTransferredTo = whereTransferredTo;
     this.tag = tag;
   }
 
-  public String getWhereTransferredTo()
-  {
+  public String getWhereTransferredTo() {
     return whereTransferredTo;
   }
 
-  public String getTag()
-  {
+  public String getTag() {
     return tag;
   }
 }
