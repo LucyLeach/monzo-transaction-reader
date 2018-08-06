@@ -15,4 +15,14 @@ public class Counterparty
 
   @Key("sort_code")
   private int sortCode;
+
+  public Counterparty()
+  {
+  }
+
+  public Counterparty(int accountNumber, int sortCode)
+  {
+    this.accountNumber = accountNumber;
+    this.sortCode = sortCode;
+  }
 }
