@@ -18,4 +18,8 @@ public class Merchant {
 
   public Merchant() {
   }
+
+  public String getName() {
+    return name;
+  }
 }

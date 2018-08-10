@@ -2,12 +2,16 @@ package uk.co.lucyleach.monzo_transaction_reader.processor;
 
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.TransactionList;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransaction;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.SaleTransaction;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * User: Lucy
@@ -16,17 +20,30 @@ import static java.util.stream.Collectors.toList;
  */
 public class TransactionProcessor {
   public TransactionProcessorResult process(TransactionList transactions) {
-    var unimplementedTransactions = transactions.getTransactions().stream()
-        .map(notImplementedResult())
-        .collect(toList());
-    return new TransactionProcessorResult(Set.of(), unimplementedTransactions);
+    var results = transactions.getTransactions().stream()
+        .map(this::process)
+        .collect(toSet());
+    return new TransactionProcessorResult(results);
   }
 
-  private static Function<Transaction, UnsuccessfulProcessorResult> notImplementedResult() {
-    return t -> new UnsuccessfulProcessorResult(t, "Not implemented yet");
+  private ProcessorResult process(Transaction original) {
+    try {
+      return new ProcessorResult(original, processWithExceptions(original));
+    } catch(ProcessorException e) {
+      return new ProcessorResult(original, e);
+    }
   }
 
-  private static Predicate<Transaction> isSaleTransaction() {
-    return t -> t.getMerchant() != null;
+  private Set<ProcessedTransaction> processWithExceptions(Transaction original) throws ProcessorException {
+    if(original.getMerchant() != null) {
+      return Set.of(new SaleTransaction(original.getId(), convertDateTime(original.getCreated()), new Money(original.getAmount(), original.getCurrency()),
+          original.getMerchant().getName(), original.getNotes())); //TODO incorrect tag parsing!
+    } else {
+      throw new ProcessorException("Only implemented sale transactions");
+    }
+  }
+
+  private static ZonedDateTime convertDateTime(String dateTimeString) {
+    return Instant.parse(dateTimeString).atZone(ZoneId.of("UTC"));
   }
 }
