@@ -3,12 +3,13 @@ package uk.co.lucyleach.monzo_transaction_reader.processor;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.TransactionList;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
-import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransaction;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.SaleTransaction;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
@@ -20,26 +21,23 @@ import static java.util.stream.Collectors.toSet;
  */
 public class TransactionProcessor {
   public TransactionProcessorResult process(TransactionList transactions) {
+    var failures = new HashSet<UnsuccessfulProcessorResult>();
     var results = transactions.getTransactions().stream()
-        .map(this::process)
+        .map(trans -> process(trans, failures))
+        .filter(Objects::nonNull)
         .collect(toSet());
-    return new TransactionProcessorResult(results);
+    return new TransactionProcessorResult(results, failures);
   }
 
-  private ProcessorResult process(Transaction original) {
-    try {
-      return new ProcessorResult(original, processWithExceptions(original));
-    } catch(ProcessorException e) {
-      return new ProcessorResult(original, e);
-    }
-  }
-
-  private Set<ProcessedTransaction> processWithExceptions(Transaction original) throws ProcessorException {
+  private SuccessfulProcessorResult process(Transaction original, Set<UnsuccessfulProcessorResult> failures) {
     if(original.getMerchant() != null) {
-      return Set.of(new SaleTransaction(original.getId(), convertDateTime(original.getCreated()), new Money(original.getAmount(), original.getCurrency()),
+      var processedTransactions = Set.of(new SaleTransaction(original.getId(), convertDateTime(original.getCreated()),
+          new Money(original.getAmount(), original.getCurrency()),
           original.getMerchant().getName(), original.getNotes())); //TODO incorrect tag parsing!
+      return new SuccessfulProcessorResult(original, processedTransactions);
     } else {
-      throw new ProcessorException("Only implemented sale transactions");
+      failures.add(new UnsuccessfulProcessorResult(original, "Only implemented sale transactions"));
+      return null;
     }
   }
 
