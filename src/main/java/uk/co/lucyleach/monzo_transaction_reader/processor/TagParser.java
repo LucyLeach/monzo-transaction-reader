@@ -20,14 +20,23 @@ class TagParser {
     if(notes.contains(";")) {
       return parseMultipleTags(notes, totalAmount);
     } else {
-      var singleTag = parseSingleTag(notes);
+      var singleTag = parseSingleTag(notes, totalAmount);
       return Map.of(singleTag, totalAmount);
     }
   }
 
-  private String parseSingleTag(String notes) throws ParsingException {
+  private String parseSingleTag(String notes, int totalAmount) throws ParsingException {
     if(!notes.startsWith("#")) {
-      throw new ParsingException("No hash found");
+      //Try interpreting with amount
+      var errors = new HashSet<String>();
+      var splitNote = createSplitNoteOrNull(notes, errors);
+      if(!errors.isEmpty()) {
+        throw new ParsingException("Errors interpreting notes " + notes + ": " + String.join(", ", errors));
+      } else if(splitNote.getAmount() != totalAmount) {
+        throw new ParsingException("Amount in " + notes + " does not equal total amount");
+      } else {
+        return splitNote.getTag();
+      }
     } else if (notes.trim().contains(" ")) {
       throw new ParsingException("More than one word in a single tag");
     } else {
@@ -102,13 +111,17 @@ class TagParser {
     } else {
       try {
         var positivePoundAmount = Double.parseDouble(splitNoteArr[0]);
-        var amount = (int) Math.round(positivePoundAmount * -100d);
+        var amount = switchAmountToNegativePence(positivePoundAmount);
         return new SplitNote(tag, amount);
       } catch(NumberFormatException e) {
         errorsToAddTo.add(note + " does not start with either rest or an amount");
         return null;
       }
     }
+  }
+
+  private int switchAmountToNegativePence(double positivePoundAmount) {
+    return (int) Math.round(positivePoundAmount * -100d);
   }
 
   class ParsingException extends Exception {

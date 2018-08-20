@@ -198,7 +198,7 @@ public class TransactionProcessorTest {
 
     var allTagsAndAmounts = Maps.newHashMap(tagsAndAmounts);
     restAmount.ifPresent(amount -> allTagsAndAmounts.put("RestTag", amount));
-    var totalAmount = -1 * allTagsAndAmounts.values().stream().mapToInt(Integer::intValue).sum();
+    var totalAmount = -100 * allTagsAndAmounts.values().stream().mapToInt(Integer::intValue).sum();
 
     var inputTransaction = new Transaction(id, totalAmount, currency, dateString, notes, merchant, description, null);
     var outputTransactions = allTagsAndAmounts.entrySet().stream()

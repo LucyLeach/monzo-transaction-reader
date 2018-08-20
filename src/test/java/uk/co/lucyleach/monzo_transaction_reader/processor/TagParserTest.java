@@ -24,6 +24,15 @@ public class TagParserTest {
     assertEquals(resultMap.get(tag), totalAmount);
   }
 
+  @Test
+  public void testSingleTagWithAmount() throws ParsingException {
+    var resultMap = UNDER_TEST.parseTags("1.7 #Tag", -170);
+    assertNotNull(resultMap);
+    assertEquals(resultMap.size(), 1);
+    assertTrue(resultMap.containsKey("Tag"));
+    assertEquals(resultMap.get("Tag"), Integer.valueOf(-170));
+  }
+
   @Test(expected = ParsingException.class)
   public void testMissingHash() throws ParsingException {
     UNDER_TEST.parseTags("NoHash", -100);
