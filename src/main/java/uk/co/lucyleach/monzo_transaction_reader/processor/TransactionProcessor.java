@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -25,7 +26,7 @@ public class TransactionProcessor {
   public TransactionProcessorResult process(TransactionList transactions) {
     var failures = new HashMap<Transaction, String>();
     var results = transactions.getTransactions().stream()
-        .filter(elseException(isSale(), "Only implemented sale transactions", failures))
+        .filter(elseException(isSale(), exceptionConsumer(failures, "Only implemented sale transactions")))
         .map(trans -> processSaleTransaction(trans, failures))
         .filter(Objects::nonNull)
         .collect(toSet());
@@ -37,15 +38,19 @@ public class TransactionProcessor {
     return t -> t.getMerchant() != null;
   }
 
-  private <T> Predicate<T> elseException(Predicate<T> filter, String exceptionString, Map<T, String> exceptionStore) {
+  private <T> Predicate<T> elseException(Predicate<T> filter, Consumer<T> consumer) {
     return t -> {
       if(filter.test(t)) {
         return true;
       } else {
-        exceptionStore.put(t, exceptionString);
+        consumer.accept(t);
         return false;
       }
     };
+  }
+
+  private static <T> Consumer<T> exceptionConsumer(Map<T, String> exceptions, String exceptionMessage) {
+    return t -> exceptions.put(t, exceptionMessage);
   }
 
   private SuccessfulProcessorResult processSaleTransaction(Transaction original, Map<Transaction, String> failures) {
