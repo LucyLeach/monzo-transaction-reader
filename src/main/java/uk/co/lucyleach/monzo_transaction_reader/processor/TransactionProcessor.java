@@ -29,7 +29,8 @@ public class TransactionProcessor {
         .map(trans -> processSaleTransaction(trans, failures))
         .filter(Objects::nonNull)
         .collect(toSet());
-    return new TransactionProcessorResult(results, failures);
+    var unsuccessfulResults = failures.entrySet().stream().map(e -> new UnsuccessfulProcessorResult(e.getKey(), e.getValue())).collect(toSet());
+    return new TransactionProcessorResult(results, unsuccessfulResults);
   }
 
   private static Predicate<Transaction> isSale() {
