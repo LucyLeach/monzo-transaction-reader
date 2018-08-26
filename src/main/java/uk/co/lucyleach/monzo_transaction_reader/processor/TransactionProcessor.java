@@ -8,11 +8,9 @@ import uk.co.lucyleach.monzo_transaction_reader.output_model.SaleTransaction;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -25,31 +23,38 @@ public class TransactionProcessor {
   private final TagParser tagParser = new TagParser();
 
   public TransactionProcessorResult process(TransactionList transactions) {
-    var failures = new HashSet<UnsuccessfulProcessorResult>();
+    var failures = new HashMap<Transaction, String>();
     var results = transactions.getTransactions().stream()
-        .map(trans -> process(trans, failures))
+        .filter(elseException(isSale(), "Only implemented sale transactions", failures))
+        .map(trans -> processSaleTransaction(trans, failures))
         .filter(Objects::nonNull)
         .collect(toSet());
     return new TransactionProcessorResult(results, failures);
   }
 
-  private SuccessfulProcessorResult process(Transaction original, Set<UnsuccessfulProcessorResult> failures) {
-    if(original.getMerchant() != null) {
-      return processSaleTransaction(original, failures);
-    } else {
-      failures.add(new UnsuccessfulProcessorResult(original, "Only implemented sale transactions"));
-      return null;
-    }
+  private static Predicate<Transaction> isSale() {
+    return t -> t.getMerchant() != null;
   }
 
-  private SuccessfulProcessorResult processSaleTransaction(Transaction original, Set<UnsuccessfulProcessorResult> failures) {
+  private <T> Predicate<T> elseException(Predicate<T> filter, String exceptionString, Map<T, String> exceptionStore) {
+    return t -> {
+      if(filter.test(t)) {
+        return true;
+      } else {
+        exceptionStore.put(t, exceptionString);
+        return false;
+      }
+    };
+  }
+
+  private SuccessfulProcessorResult processSaleTransaction(Transaction original, Map<Transaction, String> failures) {
     String notes = original.getNotes();
     int amount = original.getAmount();
     Map<String, Integer> tagsAndAmounts;
     try {
       tagsAndAmounts = tagParser.parseTags(notes, amount);
     } catch(TagParser.ParsingException e) {
-      failures.add(new UnsuccessfulProcessorResult(original, e.getMessage()));
+      failures.put(original, e.getMessage());
       return null;
     }
 
