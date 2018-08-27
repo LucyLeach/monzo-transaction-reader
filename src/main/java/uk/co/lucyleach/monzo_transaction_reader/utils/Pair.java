@@ -1,24 +1,24 @@
-package uk.co.lucyleach.monzo_transaction_reader.processor;
+package uk.co.lucyleach.monzo_transaction_reader.utils;
 
 /**
  * User: Lucy
  * Date: 29/07/2018
  * Time: 21:21
  */
-class Pair<A, B> {
+public class Pair<A, B> {
   private final A a;
   private final B b;
 
-  Pair(A a, B b) {
+  public Pair(A a, B b) {
     this.a = a;
     this.b = b;
   }
 
-  A getA() {
+  public A getA() {
     return a;
   }
 
-  B getB() {
+  public B getB() {
     return b;
   }
 }

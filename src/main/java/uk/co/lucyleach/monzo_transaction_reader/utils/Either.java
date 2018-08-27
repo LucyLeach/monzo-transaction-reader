@@ -1,6 +1,4 @@
-package uk.co.lucyleach.monzo_transaction_reader.processor;
-
-import java.util.function.Function;
+package uk.co.lucyleach.monzo_transaction_reader.utils;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -34,13 +32,5 @@ public class Either<L, R> {
 
   public R getRight() {
     return right;
-  }
-
-  public <L2, R2> Either<L2, R2> map(Function<? super L, ? extends L2> leftFunction, Function<? super R, ? extends R2> rightFunction) {
-    if(left != null) {
-      return createLeft(leftFunction.apply(left));
-    } else { //By construction, right is not null
-      return createRight(rightFunction.apply(right));
-    }
   }
 }

@@ -2,6 +2,7 @@ package uk.co.lucyleach.monzo_transaction_reader.processor;
 
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransaction;
+import uk.co.lucyleach.monzo_transaction_reader.utils.Pair;
 
 import java.util.Collection;
 
@@ -11,15 +12,15 @@ import java.util.Collection;
  * Time: 21:27
  */
 class SuccessfulProcessorResult extends Pair<Transaction, Collection<? extends ProcessedTransaction>> {
-  protected SuccessfulProcessorResult(Transaction transaction, Collection<? extends ProcessedTransaction> processedTransactions) {
+  SuccessfulProcessorResult(Transaction transaction, Collection<? extends ProcessedTransaction> processedTransactions) {
     super(transaction, processedTransactions);
   }
 
-  public Transaction getOriginalTransaction() {
+  Transaction getOriginalTransaction() {
     return getA();
   }
 
-  public Collection<? extends ProcessedTransaction> getProcessedTransactions() {
+  Collection<? extends ProcessedTransaction> getProcessedTransactions() {
     return getB();
   }
 }
