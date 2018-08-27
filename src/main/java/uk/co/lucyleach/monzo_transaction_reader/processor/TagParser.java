@@ -1,9 +1,9 @@
 package uk.co.lucyleach.monzo_transaction_reader.processor;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,11 +30,9 @@ class TagParser {
   private String parseSingleTag(String notes, int totalAmount) throws ParsingException {
     if (notes.trim().contains(" ")) {
       //Try interpreting with amount
-      var errors = new HashSet<String>();
-      var splitNote = createSplitNoteOrNull(notes, errors);
-      if(!errors.isEmpty()) {
-        throw new ParsingException("Errors interpreting notes " + notes + ": " + String.join(", ", errors));
-      } else if(splitNote.getAmount() != totalAmount) {
+      var splitNoteOrException = createSplitNote(notes);
+      var splitNote = splitNoteOrException.getResultOrThrow();
+      if(splitNote.getAmount() != totalAmount) {
         throw new ParsingException("Amount in " + notes + " does not equal total amount");
       } else {
         return splitNote.getTag();
@@ -45,15 +43,12 @@ class TagParser {
   }
 
   private Map<String, Integer> parseMultipleTags(String notes, int totalAmount) throws ParsingException {
-    var errors = new HashSet<String>();
-    var splitNotes = Stream.of(notes.split(";"))
+    var splitNotesOrExceptions = Stream.of(notes.split(";"))
         .map(String::trim)
-        .map(note -> createSplitNoteOrNull(note, errors))
-        .filter(Objects::nonNull)
+        .map(this::createSplitNote)
         .collect(toSet());
-    if(!errors.isEmpty()) {
-      throw new ParsingException("Error(s) occurred reading the notes " + notes + ": " + String.join(", ", errors));
-    }
+
+    var splitNotes = ResultOrException.throwAllExceptionsOrReturnResults(splitNotesOrExceptions);
 
     Set<SplitNote> splitNotesAllWithAmounts = fillInMissingAmountOrFail(totalAmount, splitNotes);
     checkForDuplicateTags(splitNotesAllWithAmounts);
@@ -68,7 +63,7 @@ class TagParser {
     }
   }
 
-  private Set<SplitNote> fillInMissingAmountOrFail(int totalAmount, Set<SplitNote> splitNotes) throws ParsingException {
+  private Set<SplitNote> fillInMissingAmountOrFail(int totalAmount, Collection<SplitNote> splitNotes) throws ParsingException {
     var splitNotesWithAmount = splitNotes.stream().filter(n -> n.getAmount() != null).collect(toSet());
     var splitNotesWithRest = splitNotes.stream().filter(n -> n.getAmount() == null).collect(toSet());
     //noinspection ConstantConditions - we know that getAmount won't be null because we've just filtered on that
@@ -91,25 +86,23 @@ class TagParser {
     return splitNotesAllWithAmounts;
   }
 
-  private SplitNote createSplitNoteOrNull(String note, Set<String> errorsToAddTo) {
+  private ResultOrException<SplitNote> createSplitNote(String note) {
     var splitNoteArr = note.split(" ");
     if(splitNoteArr.length != 2) {
-      errorsToAddTo.add("Note " + note + " is in incorrect format");
-      return null;
+      return ResultOrException.createException(new ParsingException("Note " + note + " is in incorrect format"));
     }
 
     String tag = splitNoteArr[1].replaceFirst("#", "");
 
     if(splitNoteArr[0].equals("rest")) {
-      return new SplitNote(tag, null);
+      return ResultOrException.createResult(new SplitNote(tag, null));
     } else {
       try {
         var positivePoundAmount = Double.parseDouble(splitNoteArr[0]);
         var amount = switchAmountToNegativePence(positivePoundAmount);
-        return new SplitNote(tag, amount);
+        return ResultOrException.createResult(new SplitNote(tag, amount));
       } catch(NumberFormatException e) {
-        errorsToAddTo.add(note + " does not start with either rest or an amount");
-        return null;
+        return ResultOrException.createException(new ParsingException(note + " does not start with either rest or an amount"));
       }
     }
   }

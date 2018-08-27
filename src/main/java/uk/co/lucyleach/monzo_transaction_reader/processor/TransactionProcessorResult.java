@@ -25,7 +25,7 @@ public class TransactionProcessorResult {
 
   public Collection<UnsuccessfulProcessorResult> getUnsuccessfulResults() {
     return resultsOrExceptions.stream()
-        .filter(roe -> !roe.isSuccess())
+        .filter(ResultOrException::isException)
         .map(ResultOrException::getException)
         .map(e -> new UnsuccessfulProcessorResult(e.getTransaction(), e.getMessage()))
         .collect(Collectors.toSet());
