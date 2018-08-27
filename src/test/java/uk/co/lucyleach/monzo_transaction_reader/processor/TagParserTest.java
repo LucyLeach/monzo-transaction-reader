@@ -85,6 +85,11 @@ public class TagParserTest {
   }
 
   @Test(expected = ParsingException.class)
+  public void testSingleNoteWithRest() throws ParsingException {
+    UNDER_TEST.parseTags("rest #Tag", -450);
+  }
+
+  @Test(expected = ParsingException.class)
   public void testDuplicateTags() throws ParsingException {
     UNDER_TEST.parseTags("1.7 #FirstTag; 2.8 #FirstTag", -450);
   }

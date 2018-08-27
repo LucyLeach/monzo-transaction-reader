@@ -32,7 +32,9 @@ class TagParser {
       //Try interpreting with amount
       var splitNoteOrException = createSplitNote(notes);
       var splitNote = splitNoteOrException.getResultOrThrow();
-      if(splitNote.getAmount() != totalAmount) {
+      if(splitNote.getAmount() == null) {
+        throw new ParsingException("Cannot have single tag using \"rest\" format");
+      } else if(splitNote.getAmount() != totalAmount) {
         throw new ParsingException("Amount in " + notes + " does not equal total amount");
       } else {
         return splitNote.getTag();
