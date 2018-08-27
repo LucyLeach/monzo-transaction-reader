@@ -97,12 +97,13 @@ public class TransactionProcessorTest {
     var notesWithoutHashes = originalTransaction.getNotes().replace("#", "");
     var inputWithoutHashes = new Transaction(originalTransaction.getId(), originalTransaction.getAmount(), originalTransaction.getCurrency(),
         originalTransaction.getCreated(), notesWithoutHashes, originalTransaction.getMerchant(), originalTransaction.getDescription(), null);
+    var expectedSuccessfulResultWoHashes = new SuccessfulProcessorResult(inputWithoutHashes, expectedSuccessfulResult.getProcessedTransactions());
 
     var result = UNDER_TEST.process(new TransactionList(inputWithoutHashes));
 
     checkForNulls(result);
     checkNoUnsuccessfulResults(result);
-    testSuccessfulResult(result.getSuccessfulResults(), expectedSuccessfulResult);
+    testSuccessfulResult(result.getSuccessfulResults(), expectedSuccessfulResultWoHashes);
   }
 
   @Test

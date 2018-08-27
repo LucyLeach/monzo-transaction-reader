@@ -33,9 +33,18 @@ public class TagParserTest {
     assertEquals(resultMap.get("Tag"), Integer.valueOf(-170));
   }
 
+  @Test
+  public void testLegacyHash() throws ParsingException {
+    var resultMap = UNDER_TEST.parseTags("NoHash", -100);
+    assertNotNull(resultMap);
+    assertEquals(resultMap.size(), 1);
+    assertTrue(resultMap.containsKey("NoHash"));
+    assertEquals(resultMap.get("NoHash"), Integer.valueOf(-100));
+  }
+
   @Test(expected = ParsingException.class)
-  public void testMissingHash() throws ParsingException {
-    UNDER_TEST.parseTags("NoHash", -100);
+  public void testEmptyNotes() throws ParsingException {
+    UNDER_TEST.parseTags("", -100);
   }
 
   @Test

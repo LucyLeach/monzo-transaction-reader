@@ -19,6 +19,8 @@ class TagParser {
   Map<String, Integer> parseTags(String notes, int totalAmount) throws ParsingException {
     if(notes.contains(";")) {
       return parseMultipleTags(notes, totalAmount);
+    } else if(notes.isEmpty()) {
+      throw new ParsingException("No notes found");
     } else {
       var singleTag = parseSingleTag(notes, totalAmount);
       return Map.of(singleTag, totalAmount);
@@ -26,7 +28,7 @@ class TagParser {
   }
 
   private String parseSingleTag(String notes, int totalAmount) throws ParsingException {
-    if(!notes.startsWith("#")) {
+    if (notes.trim().contains(" ")) {
       //Try interpreting with amount
       var errors = new HashSet<String>();
       var splitNote = createSplitNoteOrNull(notes, errors);
@@ -37,8 +39,6 @@ class TagParser {
       } else {
         return splitNote.getTag();
       }
-    } else if (notes.trim().contains(" ")) {
-      throw new ParsingException("More than one word in a single tag");
     } else {
       return notes.replaceFirst("#", "");
     }
@@ -98,13 +98,7 @@ class TagParser {
       return null;
     }
 
-    String tag;
-    if(!splitNoteArr[1].startsWith("#")) {
-      errorsToAddTo.add("Note " + note + " is in incorrect format");
-      return null;
-    } else {
-      tag = splitNoteArr[1].replaceFirst("#", "");
-    }
+    String tag = splitNoteArr[1].replaceFirst("#", "");
 
     if(splitNoteArr[0].equals("rest")) {
       return new SplitNote(tag, null);
