@@ -8,10 +8,7 @@ import uk.co.lucyleach.monzo_transaction_reader.output_model.SaleTransaction;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toSet;
@@ -25,38 +22,34 @@ public class TransactionProcessor {
   private final TagParser tagParser = new TagParser();
 
   public TransactionProcessorResult process(TransactionList transactions) {
-    var failures = new HashSet<UnsuccessfulProcessorResult>();
     var results = transactions.getTransactions().stream()
-        .map(trans -> process(trans, failures))
-        .filter(Objects::nonNull)
+        .map(this::process)
         .collect(toSet());
-    return new TransactionProcessorResult(results, failures);
+    return new TransactionProcessorResult(results);
   }
 
-  private SuccessfulProcessorResult process(Transaction original, Set<UnsuccessfulProcessorResult> failures) {
+  private ResultOrException<SuccessfulProcessorResult> process(Transaction original) {
     if(original.getMerchant() != null) {
-      return processSaleTransaction(original, failures);
+      return processSaleTransaction(original);
     } else {
-      failures.add(new UnsuccessfulProcessorResult(original, "Only implemented sale transactions"));
-      return null;
+      return ResultOrException.createException(new ParsingException("Only implemented sale transactions", original));
     }
   }
 
-  private SuccessfulProcessorResult processSaleTransaction(Transaction original, Set<UnsuccessfulProcessorResult> failures) {
+  private ResultOrException<SuccessfulProcessorResult> processSaleTransaction(Transaction original) {
     String notes = original.getNotes();
     int amount = original.getAmount();
     Map<String, Integer> tagsAndAmounts;
     try {
       tagsAndAmounts = tagParser.parseTags(notes, amount);
-    } catch(TagParser.ParsingException e) {
-      failures.add(new UnsuccessfulProcessorResult(original, e.getMessage()));
-      return null;
+    } catch(ParsingException e) {
+      return ResultOrException.createException(e.changeTransaction(original));
     }
 
     var processedTransactions = tagsAndAmounts.entrySet().stream()
         .map(createTransaction(original))
         .collect(toSet());
-    return new SuccessfulProcessorResult(original, processedTransactions);
+    return ResultOrException.createResult(new SuccessfulProcessorResult(original, processedTransactions));
   }
 
   private static Function<Map.Entry<String, Integer>, SaleTransaction> createTransaction(Transaction original) {

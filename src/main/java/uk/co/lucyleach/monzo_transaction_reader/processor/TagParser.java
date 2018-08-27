@@ -118,12 +118,6 @@ class TagParser {
     return (int) Math.round(positivePoundAmount * -100d);
   }
 
-  class ParsingException extends Exception {
-    ParsingException(String message) {
-      super(message);
-    }
-  }
-
   class SplitNote {
     private final String tag;
     @Nullable private final Integer amount;

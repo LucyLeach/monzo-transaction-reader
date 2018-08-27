@@ -1,7 +1,6 @@
 package uk.co.lucyleach.monzo_transaction_reader.processor;
 
 import org.junit.Test;
-import uk.co.lucyleach.monzo_transaction_reader.processor.TagParser.ParsingException;
 
 import static org.junit.Assert.*;
 
