@@ -73,9 +73,15 @@ public class TagParserTest {
     UNDER_TEST.parseTags("1.7 #FirstTag; 2.8 #SecondTag", -300);
   }
 
-  @Test(expected = ParsingException.class)
+  @Test
   public void testMultiTagMissingHash() throws ParsingException {
-    UNDER_TEST.parseTags("1.7 #FirstTag; 2.8 MissingHash", -450);
+    var resultMap = UNDER_TEST.parseTags("1.7 #FirstTag; 2.8 MissingHash", -450);
+    assertNotNull(resultMap);
+    assertEquals(resultMap.size(), 2);
+    assertTrue(resultMap.containsKey("FirstTag"));
+    assertEquals(resultMap.get("FirstTag"), Integer.valueOf(-170));
+    assertTrue(resultMap.containsKey("MissingHash"));
+    assertEquals(resultMap.get("MissingHash"), Integer.valueOf(-280));
   }
 
   @Test(expected = ParsingException.class)
