@@ -25,16 +25,16 @@ public class TransactionProcessor {
 
   public TransactionProcessorResult process(TransactionList transactions, ClientProcessingDetails clientDetails) {
     var results = transactions.getTransactions().stream()
-        .map(this::process)
+        .map(t -> process(t, clientDetails))
         .collect(toSet());
     return new TransactionProcessorResult(results, Set.of());
   }
 
-  private ResultOrException<SuccessfulProcessorResult> process(Transaction original) {
-    if(original.getMerchant() != null) { //Is Sale
+  private ResultOrException<SuccessfulProcessorResult> process(Transaction original, ClientProcessingDetails clientDetails) {
+    if(isSaleTransaction(original)) {
       return processSaleTransaction(original);
     } else {
-      return ResultOrException.createException(new ParsingException("Only implemented sale transactions", original));
+      return ResultOrException.createException(new ParsingException("Unimplemented transaction type", original));
     }
   }
 
@@ -52,6 +52,14 @@ public class TransactionProcessor {
         .map(createTransaction(original))
         .collect(toSet());
     return ResultOrException.createResult(new SuccessfulProcessorResult(original, processedTransactions));
+  }
+
+  private static boolean isSaleTransaction(Transaction original) {
+    return original.getMerchant() != null;
+  }
+
+  private static boolean isPotTransaction(Transaction original) {
+    return original.getDescription().startsWith(POT_PREFIX);
   }
 
   private static Function<Map.Entry<String, Integer>, SaleTransaction> createTransaction(Transaction original) {
