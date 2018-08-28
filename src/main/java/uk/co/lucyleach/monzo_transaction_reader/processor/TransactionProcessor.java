@@ -29,7 +29,7 @@ public class TransactionProcessor {
   }
 
   private ResultOrException<SuccessfulProcessorResult> process(Transaction original) {
-    if(original.getMerchant() != null) {
+    if(original.getMerchant() != null) { //Is Sale
       return processSaleTransaction(original);
     } else {
       return ResultOrException.createException(new ParsingException("Only implemented sale transactions", original));

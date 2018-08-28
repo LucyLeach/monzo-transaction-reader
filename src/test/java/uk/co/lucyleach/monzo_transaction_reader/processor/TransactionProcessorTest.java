@@ -126,6 +126,26 @@ public class TransactionProcessorTest {
   }
 
   @Test
+  public void testUnrecognisedPot() {
+    fail();
+  }
+
+  @Test
+  public void testPotRecognisedInNotOut() {
+    fail();
+  }
+
+  @Test
+  public void testPotRecognisedOutNotIn() {
+    fail();
+  }
+
+  @Test
+  public void testPotRecognisedBothWays() {
+    fail();
+  }
+
+  @Test
   public void testUnimplementedTransactionTypes() {
     var dateString = "2018-01-03T08:00:00.0Z";
     var potTransferIn = new Transaction("Pot transfer in", 230, "GBP", dateString, "Notes", null, "pot_123", null);
