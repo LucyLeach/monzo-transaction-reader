@@ -10,11 +10,13 @@ import java.time.ZonedDateTime;
 public class TransferIn extends ProcessedTransaction {
   private final String whereTransferredFrom;
   private final boolean expectedTransfer;
+  private final String tag;
 
-  public TransferIn(String monzoId, ZonedDateTime dateTime, Money amount, String whereTransferredFrom, boolean expectedTransfer) {
+  public TransferIn(String monzoId, ZonedDateTime dateTime, Money amount, String whereTransferredFrom, boolean expectedTransfer, String tag) {
     super(monzoId, dateTime, amount);
     this.whereTransferredFrom = whereTransferredFrom;
     this.expectedTransfer = expectedTransfer;
+    this.tag = tag;
   }
 
   public String getWhereTransferredFrom() {
@@ -23,5 +25,9 @@ public class TransferIn extends ProcessedTransaction {
 
   public boolean isExpectedTransfer() {
     return expectedTransfer;
+  }
+
+  public String getTag() {
+    return tag;
   }
 }

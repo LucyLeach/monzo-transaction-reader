@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toSet;
@@ -19,13 +20,14 @@ import static java.util.stream.Collectors.toSet;
  * Time: 20:28
  */
 public class TransactionProcessor {
+  final static String POT_PREFIX = "pot_";
   private final TagParser tagParser = new TagParser();
 
   public TransactionProcessorResult process(TransactionList transactions, ClientProcessingDetails clientDetails) {
     var results = transactions.getTransactions().stream()
         .map(this::process)
         .collect(toSet());
-    return new TransactionProcessorResult(results);
+    return new TransactionProcessorResult(results, Set.of());
   }
 
   private ResultOrException<SuccessfulProcessorResult> process(Transaction original) {
