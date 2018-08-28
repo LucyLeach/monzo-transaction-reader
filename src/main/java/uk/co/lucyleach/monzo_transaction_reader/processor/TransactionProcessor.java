@@ -21,7 +21,7 @@ import static java.util.stream.Collectors.toSet;
 public class TransactionProcessor {
   private final TagParser tagParser = new TagParser();
 
-  public TransactionProcessorResult process(TransactionList transactions) {
+  public TransactionProcessorResult process(TransactionList transactions, ClientProcessingDetails clientDetails) {
     var results = transactions.getTransactions().stream()
         .map(this::process)
         .collect(toSet());

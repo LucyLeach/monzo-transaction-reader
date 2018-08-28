@@ -36,7 +36,7 @@ public class TransactionProcessorTest {
 
   @Test
   public void testEmptyInput() {
-    var result = UNDER_TEST.process(new TransactionList());
+    var result = UNDER_TEST.process(new TransactionList(), emptyClientDetails());
     checkForNulls(result);
     assertEquals("There should be no successful results", 0, result.getSuccessfulResults().size());
     checkNoUnsuccessfulResults(result);
@@ -46,7 +46,7 @@ public class TransactionProcessorTest {
   public void testSingleSaleTransaction() {
     var expectedResult = createSingleSaleTransaction();
 
-    var result = UNDER_TEST.process(new TransactionList(expectedResult.getOriginalTransaction()));
+    var result = UNDER_TEST.process(new TransactionList(expectedResult.getOriginalTransaction()), emptyClientDetails());
 
     checkForNulls(result);
     checkNoUnsuccessfulResults(result);
@@ -58,7 +58,7 @@ public class TransactionProcessorTest {
     var expectedResult1 = createSingleSaleTransaction(1);
     var expectedResult2 = createSingleSaleTransaction(2);
 
-    var result = UNDER_TEST.process(new TransactionList(expectedResult1.getA(), expectedResult2.getA()));
+    var result = UNDER_TEST.process(new TransactionList(expectedResult1.getA(), expectedResult2.getA()), emptyClientDetails());
 
     checkForNulls(result);
     checkNoUnsuccessfulResults(result);
@@ -70,7 +70,7 @@ public class TransactionProcessorTest {
     var tagsToAmounts = Map.of("Tag1", 350, "Tag2", 600, "Tag3", 210);
     var expectedSuccessfulResult = createSaleTransactions(1, tagsToAmounts);
 
-    var result = UNDER_TEST.process(new TransactionList(expectedSuccessfulResult.getOriginalTransaction()));
+    var result = UNDER_TEST.process(new TransactionList(expectedSuccessfulResult.getOriginalTransaction()), emptyClientDetails());
 
     checkForNulls(result);
     checkNoUnsuccessfulResults(result);
@@ -82,7 +82,7 @@ public class TransactionProcessorTest {
     var tagsToAmounts = Map.of("Tag1", 378, "Tag2", 890);
     var expectedSuccessfulResult = createSaleTransactions(1, tagsToAmounts, Optional.of(310));
 
-    var result = UNDER_TEST.process(new TransactionList(expectedSuccessfulResult.getOriginalTransaction()));
+    var result = UNDER_TEST.process(new TransactionList(expectedSuccessfulResult.getOriginalTransaction()), emptyClientDetails());
 
     checkForNulls(result);
     checkNoUnsuccessfulResults(result);
@@ -99,7 +99,7 @@ public class TransactionProcessorTest {
         originalTransaction.getCreated(), notesWithoutHashes, originalTransaction.getMerchant(), originalTransaction.getDescription(), null);
     var expectedSuccessfulResultWoHashes = new SuccessfulProcessorResult(inputWithoutHashes, expectedSuccessfulResult.getProcessedTransactions());
 
-    var result = UNDER_TEST.process(new TransactionList(inputWithoutHashes));
+    var result = UNDER_TEST.process(new TransactionList(inputWithoutHashes), emptyClientDetails());
 
     checkForNulls(result);
     checkNoUnsuccessfulResults(result);
@@ -118,7 +118,7 @@ public class TransactionProcessorTest {
         createSimpleSaleTransaction("Amounts don't add up", "100 #FirstTag; 100 #SecondTag", -250)
     );
 
-    var result = UNDER_TEST.process(new TransactionList(Lists.newArrayList(inputSet)));
+    var result = UNDER_TEST.process(new TransactionList(Lists.newArrayList(inputSet)), emptyClientDetails());
 
     checkForNulls(result);
     assertEquals("Should have no successful results", 0, result.getSuccessfulResults().size());
@@ -133,7 +133,7 @@ public class TransactionProcessorTest {
     var bankTransferIn = new Transaction("Bank transfer in", 420, "GBP", dateString, "Notes", null, "Description", new Counterparty(54398, 200000));
     var bankTransferOut = new Transaction("Bank transfer in", -420, "GBP", dateString, "Notes", null, "Description", new Counterparty(54398, 200000));
 
-    var result = UNDER_TEST.process(new TransactionList(potTransferIn, potTransferOut, bankTransferIn, bankTransferOut));
+    var result = UNDER_TEST.process(new TransactionList(potTransferIn, potTransferOut, bankTransferIn, bankTransferOut), emptyClientDetails());
 
     checkForNulls(result);
     assertEquals("Should have no successful results", 0, result.getSuccessfulResults().size());
@@ -212,5 +212,9 @@ public class TransactionProcessorTest {
     assertNotNull("Should return non null result", result);
     assertNotNull("Should return non null successful results list", result.getSuccessfulResults());
     assertNotNull("Should return non null unsuccessful results list", result.getUnsuccessfulResults());
+  }
+
+  private static ClientProcessingDetails emptyClientDetails() {
+    return new ClientProcessingDetails(Map.of(), Map.of());
   }
 }
