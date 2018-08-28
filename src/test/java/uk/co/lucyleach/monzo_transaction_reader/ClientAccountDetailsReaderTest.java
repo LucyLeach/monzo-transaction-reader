@@ -58,6 +58,17 @@ public class ClientAccountDetailsReaderTest {
     }
   }
 
+  @Test
+  public void testBadlyFormattedMap() throws Exception {
+    var testPropertiesFile = propertiesFileByTestName("badly_formatted_map");
+    try {
+      UNDER_TEST.read(testPropertiesFile);
+      fail("Should have thrown exception");
+    } catch(IOException exception) {
+      assertTrue("Error message should contain file path", exception.getMessage().contains(testPropertiesFile));
+    }
+  }
+
   private void testMissingPropertyError(String missingProperty) throws URISyntaxException {
     var testPropertiesFile = propertiesFileByTestName("missing_" + missingProperty);
     try {
