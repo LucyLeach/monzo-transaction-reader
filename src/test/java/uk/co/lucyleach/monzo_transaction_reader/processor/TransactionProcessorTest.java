@@ -142,9 +142,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     assertEquals("Should have no successful results", 0, result.getSuccessfulResults().size());
     assertEquals("Should have no unsuccessful results", 0, result.getUnsuccessfulResults().size());
-    assertTrue("Should have ignored in transaction", result.getIgnoredTransactions().contains(potTransferIn));
-    assertTrue("Should have ignored out transaction", result.getIgnoredTransactions().contains(potTransferOut));
-    assertEquals("Should have 2 ignored transactions", 2, result.getIgnoredTransactions().size());
+    checkIgnoredTransactions(result, potTransferIn, potTransferOut);
   }
 
   @Test
@@ -160,8 +158,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     assertEquals("Should have no unsuccessful results", 0, result.getUnsuccessfulResults().size());
     checkSuccessfulResult(result.getSuccessfulResults(), potTransferInResult);
-    assertTrue("Should have ignored out transaction", result.getIgnoredTransactions().contains(potTransferOut));
-    assertEquals("Should have one ignored transactions", 1, result.getIgnoredTransactions().size());
+    checkIgnoredTransactions(result, potTransferOut);
   }
 
   @Test
@@ -177,8 +174,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     assertEquals("Should have no unsuccessful results", 0, result.getUnsuccessfulResults().size());
     checkSuccessfulResult(result.getSuccessfulResults(), potTransferOutResult);
-    assertTrue("Should have ignored out transaction", result.getIgnoredTransactions().contains(potTransferIn));
-    assertEquals("Should have one ignored transactions", 1, result.getIgnoredTransactions().size());
+    checkIgnoredTransactions(result, potTransferIn);
   }
 
   @Test
@@ -195,6 +191,24 @@ public class TransactionProcessorTest {
     assertEquals("Should have no unsuccessful results", 0, result.getUnsuccessfulResults().size());
     checkSuccessfulResult(result.getSuccessfulResults(), potTransferOutResult, potTransferOutResult);
     assertTrue("Should have no ignored transactions", result.getIgnoredTransactions().isEmpty());
+  }
+
+  @Test
+  public void testIgnoreZeroTransactionOfAnyType() {
+    var saleTransaction = createSimpleSaleTransaction("Zero transaction", "#foo", 0);
+
+    String potId = POT_PREFIX + "ZeroAmount";
+    var potTransferInResult = createPotTransaction(potId, "MappedTagIn", true, 0);
+    var potTransferOutResult = createPotTransaction(potId, "MappedTagOut", false, 0);
+
+    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTagIn"), Map.of(potId, "MappedTagOut"));
+
+    var result = UNDER_TEST.process(new TransactionList(saleTransaction, potTransferOutResult.getOriginalTransaction(), potTransferInResult.getOriginalTransaction()), clientDetails);
+
+    checkForNulls(result);
+    assertTrue("Should have no unsuccessful results", result.getUnsuccessfulResults().isEmpty());
+    assertTrue("Should have no successful results", result.getSuccessfulResults().isEmpty());
+    checkIgnoredTransactions(result, saleTransaction, potTransferInResult.getOriginalTransaction(), potTransferOutResult.getOriginalTransaction());
   }
 
   @Test
@@ -280,11 +294,14 @@ public class TransactionProcessorTest {
   }
 
   private static SuccessfulProcessorResult createPotTransaction(String potId, String tag, boolean isIn) {
+    return createPotTransaction(potId, tag, isIn, isIn ? 230 : -410);
+  }
+
+  private static SuccessfulProcessorResult createPotTransaction(String potId, String tag, boolean isIn, int amount) {
     assertTrue("Pot ID must start with pot_", potId.startsWith(POT_PREFIX));
     var dateString = "2018-01-04T08:00:00.0Z";
     var date = ZonedDateTime.of(2018, 1, 4, 8, 0, 0, 0, ZoneId.of("UTC"));
     var inOrOut = isIn ? "in" : "out";
-    var amount = isIn ? 230 : -410;
     String transactionId = "Pot transfer " + inOrOut;
     var inputTransaction = new Transaction(transactionId, amount, "GBP", dateString, "Notes", null, potId, null);
     ProcessedTransaction processedTransaction;
@@ -301,6 +318,12 @@ public class TransactionProcessorTest {
     assertNotNull("Should return non null successful results list", result.getSuccessfulResults());
     assertNotNull("Should return non null unsuccessful results list", result.getUnsuccessfulResults());
     assertNotNull("Should return non null ignored transactions", result.getIgnoredTransactions());
+  }
+
+  private static void checkIgnoredTransactions(TransactionProcessorResult result, Transaction... expectedIgnoredTransactions) {
+    var ignoredTransactions = result.getIgnoredTransactions();
+    Stream.of(expectedIgnoredTransactions).forEach(t -> assertTrue("Should have ignored result for " + t.getId(), ignoredTransactions.contains(t)));
+    assertEquals("Should have only " + expectedIgnoredTransactions.length + " ignored transactions", expectedIgnoredTransactions.length, ignoredTransactions.size());
   }
 
   private static ClientProcessingDetails emptyClientDetails() {

@@ -4,6 +4,8 @@ import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.TransactionList;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.SaleTransaction;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.TransferIn;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.TransferOut;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -13,6 +15,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toSet;
+import static uk.co.lucyleach.monzo_transaction_reader.processor.ProcessorResult.*;
 
 /**
  * User: Lucy
@@ -27,31 +30,55 @@ public class TransactionProcessor {
     var results = transactions.getTransactions().stream()
         .map(t -> process(t, clientDetails))
         .collect(toSet());
-    return new TransactionProcessorResult(results, Set.of());
+    return new TransactionProcessorResult(results);
   }
 
-  private ResultOrException<SuccessfulProcessorResult> process(Transaction original, ClientProcessingDetails clientDetails) {
-    if(isSaleTransaction(original)) {
+  private ProcessorResult process(Transaction original, ClientProcessingDetails clientDetails) {
+    if(original.getAmount() == 0) {
+      return createIgnoredResult(original);
+    } else if(isSaleTransaction(original)) {
       return processSaleTransaction(original);
+    } else if(isPotTransaction(original)) {
+      return processPotTransaction(original, clientDetails);
     } else {
-      return ResultOrException.createException(new ParsingException("Unimplemented transaction type", original));
+      return createErrorResult(original, "Unimplemented transaction type");
     }
   }
 
-  private ResultOrException<SuccessfulProcessorResult> processSaleTransaction(Transaction original) {
+  private ProcessorResult processSaleTransaction(Transaction original) {
     String notes = original.getNotes();
     int amount = original.getAmount();
     Map<String, Integer> tagsAndAmounts;
     try {
       tagsAndAmounts = tagParser.parseTags(notes, amount);
     } catch(ParsingException e) {
-      return ResultOrException.createException(e.changeTransaction(original));
+      return createErrorResult(original, e.getMessage());
     }
 
     var processedTransactions = tagsAndAmounts.entrySet().stream()
         .map(createTransaction(original))
         .collect(toSet());
-    return ResultOrException.createResult(new SuccessfulProcessorResult(original, processedTransactions));
+    return createProcessedResult(original, processedTransactions);
+  }
+
+  private ProcessorResult processPotTransaction(Transaction original, ClientProcessingDetails clientDetails) {
+    String potId = original.getDescription();
+    boolean isInTransaction = original.getAmount() > 0;
+    boolean inDetails = isInTransaction ? clientDetails.getPotsToRecogniseIn().containsKey(potId) : clientDetails.getPotsToRecogniseOut().containsKey(potId);
+    boolean toIgnore = !inDetails || original.getAmount() == 0;
+    if(toIgnore) {
+      return createIgnoredResult(original);
+    } else if(isInTransaction) {
+      var tag = clientDetails.getPotsToRecogniseIn().get(potId);
+      var processedTransaction = new TransferIn(original.getId(), convertDateTime(original.getCreated()), new Money(original.getAmount(), original.getCurrency()),
+          original.getDescription(), false, tag);
+      return createProcessedResult(original, Set.of(processedTransaction));
+    } else {
+      var tag = clientDetails.getPotsToRecogniseOut().get(potId);
+      var processedTransaction = new TransferOut(original.getId(), convertDateTime(original.getCreated()), new Money(original.getAmount(), original.getCurrency()),
+          original.getDescription(), tag);
+      return createProcessedResult(original, Set.of(processedTransaction));
+    }
   }
 
   private static boolean isSaleTransaction(Transaction original) {

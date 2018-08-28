@@ -1,6 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.output_model;
 
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 /**
  * User: Lucy
@@ -29,5 +30,20 @@ public class TransferIn extends ProcessedTransaction {
 
   public String getTag() {
     return tag;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if(this == o) return true;
+    if(o == null || getClass() != o.getClass()) return false;
+    TransferIn that = (TransferIn) o;
+    return expectedTransfer == that.expectedTransfer &&
+        Objects.equals(whereTransferredFrom, that.whereTransferredFrom) &&
+        Objects.equals(tag, that.tag);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(whereTransferredFrom, expectedTransfer, tag);
   }
 }

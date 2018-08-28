@@ -33,4 +33,8 @@ public class Either<L, R> {
   public R getRight() {
     return right;
   }
+
+  public boolean isLeft() {
+    return left != null;
+  }
 }

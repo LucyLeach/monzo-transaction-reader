@@ -31,7 +31,7 @@ class ResultOrException<RES> {
   }
 
   boolean isSuccess() {
-    return either.getLeft() != null;
+    return either.isLeft();
   }
 
   boolean isException() {

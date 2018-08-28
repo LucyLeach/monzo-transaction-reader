@@ -4,7 +4,8 @@ import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * User: Lucy
@@ -12,30 +13,30 @@ import java.util.stream.Collectors;
  * Time: 21:18
  */
 public class TransactionProcessorResult {
-  private final Collection<ResultOrException<SuccessfulProcessorResult>> resultsOrExceptions;
-  private final Collection<Transaction> ignoredTransactions;
+  private final Collection<ProcessorResult> processorResults;
 
-  public TransactionProcessorResult(Collection<ResultOrException<SuccessfulProcessorResult>> resultsOrExceptions, Collection<Transaction> ignoredTransactions) {
-    this.resultsOrExceptions = Set.copyOf(resultsOrExceptions);
-    this.ignoredTransactions = Set.copyOf(ignoredTransactions);
+  public TransactionProcessorResult(Collection<ProcessorResult> results) {
+    this.processorResults = Set.copyOf(results);
   }
 
   public Collection<SuccessfulProcessorResult> getSuccessfulResults() {
-    return resultsOrExceptions.stream()
-        .filter(ResultOrException::isSuccess)
-        .map(ResultOrException::getResult)
-        .collect(Collectors.toSet());
+    return processorResults.stream()
+        .filter(ProcessorResult::isProcessedResult)
+        .map(res -> new SuccessfulProcessorResult(res.getOriginalTransaction(), res.getProcessedTransactions()))
+        .collect(toSet());
   }
 
   public Collection<UnsuccessfulProcessorResult> getUnsuccessfulResults() {
-    return resultsOrExceptions.stream()
-        .filter(ResultOrException::isException)
-        .map(ResultOrException::getException)
-        .map(e -> new UnsuccessfulProcessorResult(e.getTransaction(), e.getMessage()))
-        .collect(Collectors.toSet());
+    return processorResults.stream()
+        .filter(ProcessorResult::isErrorResult)
+        .map(res -> new UnsuccessfulProcessorResult(res.getOriginalTransaction(), res.getErrorMessage()))
+        .collect(toSet());
   }
 
   public Collection<Transaction> getIgnoredTransactions() {
-    return ignoredTransactions;
+    return processorResults.stream()
+        .filter(ProcessorResult::isIgnoredResult)
+        .map(ProcessorResult::getOriginalTransaction)
+        .collect(toSet());
   }
 }
