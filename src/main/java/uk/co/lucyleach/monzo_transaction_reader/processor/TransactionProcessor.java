@@ -47,8 +47,8 @@ public class TransactionProcessor {
   }
 
   private ProcessorResult processSaleTransaction(Transaction original) {
-    String notes = original.getNotes();
-    int amount = original.getAmount();
+    var notes = original.getNotes();
+    var amount = original.getAmount();
     Map<String, Integer> tagsAndAmounts;
     try {
       tagsAndAmounts = tagParser.parseTags(notes, amount);
@@ -63,10 +63,10 @@ public class TransactionProcessor {
   }
 
   private ProcessorResult processPotTransaction(Transaction original, ClientProcessingDetails clientDetails) {
-    String potId = original.getDescription();
-    boolean isInTransaction = original.getAmount() > 0;
-    boolean inDetails = isInTransaction ? clientDetails.getPotsToRecogniseIn().containsKey(potId) : clientDetails.getPotsToRecogniseOut().containsKey(potId);
-    boolean toIgnore = !inDetails || original.getAmount() == 0;
+    var potId = original.getDescription();
+    var isInTransaction = original.getAmount() > 0;
+    var inDetails = isInTransaction ? clientDetails.getPotsToRecogniseIn().containsKey(potId) : clientDetails.getPotsToRecogniseOut().containsKey(potId);
+    var toIgnore = !inDetails || original.getAmount() == 0;
     if(toIgnore) {
       return createIgnoredResult(original);
     } else if(isInTransaction) {

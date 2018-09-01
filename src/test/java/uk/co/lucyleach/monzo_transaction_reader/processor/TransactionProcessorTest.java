@@ -134,7 +134,7 @@ public class TransactionProcessorTest {
 
   @Test
   public void testUnrecognisedPot() {
-    String potId = POT_PREFIX + "Unrecognized";
+    var potId = POT_PREFIX + "Unrecognized";
     var potTransferIn = createPotTransaction(potId, "tag", true).getOriginalTransaction();
     var potTransferOut = createPotTransaction(potId, "tag", false).getOriginalTransaction();
 
@@ -148,7 +148,7 @@ public class TransactionProcessorTest {
 
   @Test
   public void testPotRecognisedInNotOut() {
-    String potId = POT_PREFIX + "RecognizedInNotOut";
+    var potId = POT_PREFIX + "RecognizedInNotOut";
     var potTransferInResult = createPotTransaction(potId, "MappedTag", true);
     var potTransferOut = createPotTransaction(potId, "tag", false).getOriginalTransaction();
 
@@ -164,7 +164,7 @@ public class TransactionProcessorTest {
 
   @Test
   public void testPotRecognisedOutNotIn() {
-    String potId = POT_PREFIX + "RecognisedOutNotIn";
+    var potId = POT_PREFIX + "RecognisedOutNotIn";
     var potTransferIn = createPotTransaction(potId, "tag", true).getOriginalTransaction();
     var potTransferOutResult = createPotTransaction(potId, "MappedTag", false);
 
@@ -180,7 +180,7 @@ public class TransactionProcessorTest {
 
   @Test
   public void testPotRecognisedBothWays() {
-    String potId = POT_PREFIX + "RecognisedBothWays";
+    var potId = POT_PREFIX + "RecognisedBothWays";
     var potTransferInResult = createPotTransaction(potId, "MappedTagIn", true);
     var potTransferOutResult = createPotTransaction(potId, "MappedTagOut", false);
 
@@ -198,7 +198,7 @@ public class TransactionProcessorTest {
   public void testIgnoreZeroTransactionOfAnyType() {
     var saleTransaction = createSimpleSaleTransaction("Zero transaction", "#foo", 0);
 
-    String potId = POT_PREFIX + "ZeroAmount";
+    var potId = POT_PREFIX + "ZeroAmount";
     var potTransferInResult = createPotTransaction(potId, "MappedTagIn", true, 0);
     var potTransferOutResult = createPotTransaction(potId, "MappedTagOut", false, 0);
 
@@ -217,7 +217,7 @@ public class TransactionProcessorTest {
     var justIgnoreTag = createSimpleSaleTransaction("Just ignore tag", IGNORE_TAG, -2930);
     var ignoreTagMiddle = createSimpleSaleTransaction("Ignore tag middle", "2.3 #groceries; 4.1 " + IGNORE_TAG  + "; rest #toys", -1089);
 
-    String potId = POT_PREFIX + "Ignore Tag";
+    var potId = POT_PREFIX + "Ignore Tag";
     var dateString = "2018-01-07T08:00:00.0Z";
     var ignorePotInTransaction = new Transaction(potId + " in", 5631, "GBP", dateString, IGNORE_TAG, null, potId, null);
     var ignorePotOutTransaction = new Transaction(potId + " out", -5631, "GBP", dateString, IGNORE_TAG, null, potId, null);
@@ -330,7 +330,7 @@ public class TransactionProcessorTest {
     var dateString = "2018-01-04T08:00:00.0Z";
     var date = ZonedDateTime.of(2018, 1, 4, 8, 0, 0, 0, ZoneId.of("UTC"));
     var inOrOut = isIn ? "in" : "out";
-    String transactionId = "Pot transfer " + inOrOut;
+    var transactionId = "Pot transfer " + inOrOut;
     var inputTransaction = new Transaction(transactionId, amount, "GBP", dateString, "Notes", null, potId, null);
     ProcessedTransaction processedTransaction;
     if(isIn) {
