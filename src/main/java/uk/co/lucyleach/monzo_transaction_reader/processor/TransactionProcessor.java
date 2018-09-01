@@ -1,11 +1,9 @@
 package uk.co.lucyleach.monzo_transaction_reader.processor;
 
+import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Counterparty;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.TransactionList;
-import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
-import uk.co.lucyleach.monzo_transaction_reader.output_model.SaleTransaction;
-import uk.co.lucyleach.monzo_transaction_reader.output_model.TransferIn;
-import uk.co.lucyleach.monzo_transaction_reader.output_model.TransferOut;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.*;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -41,12 +39,22 @@ public class TransactionProcessor {
       return processSaleTransaction(original);
     } else if(isPotTransaction(original)) {
       return processPotTransaction(original, clientDetails);
+    } else if(isTransferTransaction(original)) {
+      return processTransferTransaction(original);
     } else {
       return createErrorResult(original, "Unimplemented transaction type");
     }
   }
 
   private ProcessorResult processSaleTransaction(Transaction original) {
+    return processTaggedTransaction(original, TransactionProcessor::createSaleTransactionWithTag);
+  }
+
+  private ProcessorResult processTransferTransaction(Transaction original) {
+    return processTaggedTransaction(original, TransactionProcessor::createTransferTransactionWithTag);
+  }
+
+  private ProcessorResult processTaggedTransaction(Transaction original, Function<Transaction, Function<Map.Entry<String, Integer>, ProcessedTransaction>> tagToTransactionFunction) {
     var notes = original.getNotes();
     var amount = original.getAmount();
     Map<String, Integer> tagsAndAmounts;
@@ -57,7 +65,7 @@ public class TransactionProcessor {
     }
 
     var processedTransactions = tagsAndAmounts.entrySet().stream()
-        .map(createTransaction(original))
+        .map(tagToTransactionFunction.apply(original))
         .collect(toSet());
     return createProcessedResult(original, processedTransactions);
   }
@@ -90,16 +98,32 @@ public class TransactionProcessor {
     return original.getDescription().startsWith(POT_PREFIX);
   }
 
-  public static boolean isTransfer(Transaction original) {
+  private static boolean isTransferTransaction(Transaction original) {
     return original.getCounterparty() != null && original.getCounterparty().isNonEmpty();
   }
 
-  private static Function<Map.Entry<String, Integer>, SaleTransaction> createTransaction(Transaction original) {
+  private static Function<Map.Entry<String, Integer>, ProcessedTransaction> createSaleTransactionWithTag(Transaction original) {
     return entry -> new SaleTransaction(original.getId(), convertDateTime(original.getCreated()),
             new Money(entry.getValue(), original.getCurrency()), original.getMerchant().getName(), entry.getKey());
   }
 
+  private static Function<Map.Entry<String, Integer>, ProcessedTransaction> createTransferTransactionWithTag(Transaction original) {
+    return entry -> {
+      if(entry.getValue() > 0) {
+        return new TransferIn(original.getId(), convertDateTime(original.getCreated()), new Money(entry.getValue(), original.getCurrency()),
+            createWhereFromString(original.getDescription(), original.getCounterparty()), false, entry.getKey());
+      } else {
+        return new TransferOut(original.getId(), convertDateTime(original.getCreated()), new Money(entry.getValue(), original.getCurrency()),
+            createWhereFromString(original.getDescription(), original.getCounterparty()), entry.getKey());
+      }
+    };
+  }
+
   private static ZonedDateTime convertDateTime(String dateTimeString) {
     return Instant.parse(dateTimeString).atZone(ZoneId.of("UTC"));
+  }
+
+  private static String createWhereFromString(String description, Counterparty counterparty) {
+    return counterparty.getAccountNumber() + "/" + counterparty.getSortCode() + " - " + description;
   }
 }

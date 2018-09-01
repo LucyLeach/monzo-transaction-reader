@@ -19,8 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 import static org.junit.Assert.*;
 import static uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProcessor.IGNORE_TAG;
 import static uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProcessor.POT_PREFIX;
@@ -101,7 +100,7 @@ public class TransactionProcessorTest {
     var originalTransaction = expectedSuccessfulResult.getOriginalTransaction();
     var notesWithoutHashes = originalTransaction.getNotes().replace("#", "");
     var inputWithoutHashes = new Transaction(originalTransaction.getId(), originalTransaction.getAmount(), originalTransaction.getCurrency(),
-        originalTransaction.getCreated(), notesWithoutHashes, originalTransaction.getMerchant(), originalTransaction.getDescription(), null);
+        originalTransaction.getCreated(), notesWithoutHashes, originalTransaction.getMerchant(), originalTransaction.getDescription(), emptyCounterparty());
     var expectedSuccessfulResultWoHashes = new SuccessfulProcessorResult(inputWithoutHashes, expectedSuccessfulResult.getProcessedTransactions());
 
     var result = UNDER_TEST.process(new TransactionList(inputWithoutHashes), emptyClientDetails());
@@ -219,29 +218,72 @@ public class TransactionProcessorTest {
 
     var potId = POT_PREFIX + "Ignore Tag";
     var dateString = "2018-01-07T08:00:00.0Z";
-    var ignorePotInTransaction = new Transaction(potId + " in", 5631, "GBP", dateString, IGNORE_TAG, null, potId, null);
-    var ignorePotOutTransaction = new Transaction(potId + " out", -5631, "GBP", dateString, IGNORE_TAG, null, potId, null);
+    var ignorePotInTransaction = new Transaction(potId + " in", 5631, "GBP", dateString, IGNORE_TAG, null, potId, emptyCounterparty());
+    var ignorePotOutTransaction = new Transaction(potId + " out", -5631, "GBP", dateString, IGNORE_TAG, null, potId, emptyCounterparty());
+    var ignoreTransferIn = new Transaction("Transfer in with ignore", 7312, "GBP", dateString, IGNORE_TAG, null, "Description", new Counterparty(123, 456));
+    var ignoreTransferOut = new Transaction("Transfer out with ignore", -7312, "GBP", dateString, IGNORE_TAG, null, "Description", new Counterparty(123, 456));
     var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTagIn"), Map.of(potId, "MappedTagOut"));
 
-    var result = UNDER_TEST.process(new TransactionList(justIgnoreTag, ignoreTagMiddle, ignorePotInTransaction, ignorePotOutTransaction), clientDetails);
+    var result = UNDER_TEST.process(new TransactionList(justIgnoreTag, ignoreTagMiddle, ignorePotInTransaction, ignorePotOutTransaction, ignoreTransferIn, ignoreTransferOut), clientDetails);
 
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, justIgnoreTag, ignoreTagMiddle, ignorePotInTransaction, ignorePotOutTransaction);
+    checkIgnoredTransactions(result, justIgnoreTag, ignoreTagMiddle, ignorePotInTransaction, ignorePotOutTransaction, ignoreTransferIn, ignoreTransferOut);
+  }
+
+  @Test
+  public void testTransfersUnreadableTag() {
+    var dateString = "2018-01-10T10:00:00.0Z";
+    var transferIn = new Transaction("Unreadable tag - transfer in", 4320, "GBP", dateString, "Unreadable tag",
+        null, "Description", new Counterparty(234, 789));
+    var transferOut = new Transaction("Unreadable tag - transfer out", -4320, "GBP", dateString, "Unreadable tag",
+        null, "Description", new Counterparty(234, 789));
+
+    var result = UNDER_TEST.process(new TransactionList(transferIn, transferOut), emptyClientDetails());
+
+    checkForNulls(result);
+    checkNoSuccessfulResults(result);
+    checkForUnsuccessfulResults(Set.of(transferIn, transferOut), result);
+    checkNoIgnoredTransactions(result);
+  }
+
+  @Test
+  public void testTransfersSimpleTag() {
+    var transferInResult = createTransferTransaction("Simple tag", Map.of("Tag1", 5340));
+    var transferOutResult = createTransferTransaction("Simple tag", Map.of("Tag1", -5340));
+
+    var result = UNDER_TEST.process(new TransactionList(transferInResult.getOriginalTransaction(), transferOutResult.getOriginalTransaction()), emptyClientDetails());
+
+    checkForNulls(result);
+    checkSuccessfulResult(result.getSuccessfulResults(), transferInResult, transferOutResult);
+    checkNoUnsuccessfulResults(result);
+    checkNoIgnoredTransactions(result);
+  }
+
+  @Test
+  public void testTransfersComplexTag() {
+    var transferInResult = createTransferTransaction("Complex tag", Map.of("Tag1", 5340, "Tag2", 6729, "Tag3", 1111));
+    var transferOutResult = createTransferTransaction("Complex tag", Map.of("Tag1", -5340, "Tag2", -6729, "Tag3", -1111));
+
+    var result = UNDER_TEST.process(new TransactionList(transferInResult.getOriginalTransaction(), transferOutResult.getOriginalTransaction()), emptyClientDetails());
+
+    checkForNulls(result);
+    checkSuccessfulResult(result.getSuccessfulResults(), transferInResult, transferOutResult);
+    checkNoUnsuccessfulResults(result);
+    checkNoIgnoredTransactions(result);
   }
 
   @Test
   public void testUnimplementedTransactionTypes() {
     var dateString = "2018-01-03T08:00:00.0Z";
-    var bankTransferIn = new Transaction("Bank transfer in", 420, "GBP", dateString, "Notes", null, "Description", new Counterparty(54398, 200000));
-    var bankTransferOut = new Transaction("Bank transfer in", -420, "GBP", dateString, "Notes", null, "Description", new Counterparty(54398, 200000));
+    var missingAllDetails = new Transaction("Bank transfer in", 420, "GBP", dateString, "Notes", null, "Description", emptyCounterparty());
 
-    var result = UNDER_TEST.process(new TransactionList(bankTransferIn, bankTransferOut), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(missingAllDetails), emptyClientDetails());
 
     checkForNulls(result);
     checkNoSuccessfulResults(result);
-    checkForUnsuccessfulResults(Set.of(bankTransferIn, bankTransferOut), result);
+    checkForUnsuccessfulResults(Set.of(missingAllDetails), result);
     checkNoIgnoredTransactions(result);
   }
 
@@ -253,7 +295,7 @@ public class TransactionProcessorTest {
 
   private static Transaction createSimpleSaleTransaction(String testName, String notes, int totalAmount) {
     var dateString = "2018-01-02T08:00:00.0Z";
-    return new Transaction(testName, totalAmount, "GBP", dateString, notes, new Merchant("A Merchant"), "Description", null);
+    return new Transaction(testName, totalAmount, "GBP", dateString, notes, new Merchant("A Merchant"), "Description", emptyCounterparty());
   }
 
   private static void checkNoUnsuccessfulResults(TransactionProcessorResult result) {
@@ -314,7 +356,7 @@ public class TransactionProcessorTest {
     restAmount.ifPresent(amount -> allTagsAndAmounts.put("RestTag", amount));
     var totalAmount = -100 * allTagsAndAmounts.values().stream().mapToInt(Integer::intValue).sum();
 
-    var inputTransaction = new Transaction(id, totalAmount, currency, dateString, notes, merchant, description, null);
+    var inputTransaction = new Transaction(id, totalAmount, currency, dateString, notes, merchant, description, emptyCounterparty());
     var outputTransactions = allTagsAndAmounts.entrySet().stream()
         .map(tagAndAmount -> new SaleTransaction(id, date, new Money(-1 * tagAndAmount.getValue(), currency), merchantName, tagAndAmount.getKey()))
         .collect(toList());
@@ -331,7 +373,7 @@ public class TransactionProcessorTest {
     var date = ZonedDateTime.of(2018, 1, 4, 8, 0, 0, 0, ZoneId.of("UTC"));
     var inOrOut = isIn ? "in" : "out";
     var transactionId = "Pot transfer " + inOrOut;
-    var inputTransaction = new Transaction(transactionId, amount, "GBP", dateString, "Notes", null, potId, null);
+    var inputTransaction = new Transaction(transactionId, amount, "GBP", dateString, "Notes", null, potId, emptyCounterparty());
     ProcessedTransaction processedTransaction;
     if(isIn) {
       processedTransaction = new TransferIn(transactionId, date, new Money(amount, "GBP"), potId, false, tag);
@@ -339,6 +381,30 @@ public class TransactionProcessorTest {
       processedTransaction = new TransferOut(transactionId, date, new Money(amount, "GBP"), potId, tag);
     }
     return new SuccessfulProcessorResult(inputTransaction, Set.of(processedTransaction));
+  }
+
+  private static SuccessfulProcessorResult createTransferTransaction(String testName, Map<String, Integer> tagsAndAmounts) {
+    var dateString = "2018-01-09T08:30:00.0Z";
+    var date = ZonedDateTime.of(2018, 1, 9, 8, 30, 0, 0, ZoneId.of("UTC"));
+    var notes = tagsAndAmounts.entrySet().stream().map(e -> (-0.01 * e.getValue()) + " #" + e.getKey()).collect(joining(";"));
+    var totalAmount = tagsAndAmounts.values().stream().mapToInt(Integer::intValue).sum();
+    var isIn = totalAmount > 0;
+    var transactionId = testName + (isIn ? " in" : " out");
+    var counterparty = new Counterparty(123, 456);
+    var description = "Description";
+    var inputTransaction = new Transaction(transactionId, totalAmount, "GBP", dateString, notes, null, description, counterparty);
+    var expectedWhere = counterparty.getAccountNumber() + "/" + counterparty.getSortCode() + " - " + description;
+    Set<ProcessedTransaction> processedTransactions;
+    if(isIn) {
+      processedTransactions = tagsAndAmounts.entrySet().stream()
+        .map(e -> new TransferIn(transactionId, date, new Money(e.getValue(), "GBP"), expectedWhere, false, e.getKey()))
+        .collect(toSet());
+    } else {
+      processedTransactions = tagsAndAmounts.entrySet().stream()
+        .map(e -> new TransferOut(transactionId, date, new Money(e.getValue(), "GBP"), expectedWhere, e.getKey()))
+        .collect(toSet());
+    }
+    return new SuccessfulProcessorResult(inputTransaction, processedTransactions);
   }
 
   private static void checkForNulls(TransactionProcessorResult result) {
@@ -356,5 +422,9 @@ public class TransactionProcessorTest {
 
   private static ClientProcessingDetails emptyClientDetails() {
     return new ClientProcessingDetails(Map.of(), Map.of());
+  }
+
+  private static Counterparty emptyCounterparty() {
+    return new Counterparty(null, null);
   }
 }
