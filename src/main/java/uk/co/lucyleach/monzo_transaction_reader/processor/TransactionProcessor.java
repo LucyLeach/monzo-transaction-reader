@@ -90,6 +90,10 @@ public class TransactionProcessor {
     return original.getDescription().startsWith(POT_PREFIX);
   }
 
+  public static boolean isTransfer(Transaction original) {
+    return original.getCounterparty() != null && original.getCounterparty().isNonEmpty();
+  }
+
   private static Function<Map.Entry<String, Integer>, SaleTransaction> createTransaction(Transaction original) {
     return entry -> new SaleTransaction(original.getId(), convertDateTime(original.getCreated()),
             new Money(entry.getValue(), original.getCurrency()), original.getMerchant().getName(), entry.getKey());

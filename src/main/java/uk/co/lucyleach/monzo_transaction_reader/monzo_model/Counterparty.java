@@ -1,5 +1,6 @@
 package uk.co.lucyleach.monzo_transaction_reader.monzo_model;
 
+import com.google.api.client.json.JsonString;
 import com.google.api.client.util.Key;
 
 /**
@@ -10,16 +11,30 @@ import com.google.api.client.util.Key;
 @SuppressWarnings("WeakerAccess") //Class must be public to be used by Jackson
 public class Counterparty {
   @Key("account_number")
-  private int accountNumber;
+  @JsonString
+  private Integer accountNumber;
 
   @Key("sort_code")
-  private int sortCode;
+  @JsonString
+  private Integer sortCode;
 
   public Counterparty() {
   }
 
-  public Counterparty(int accountNumber, int sortCode) {
+  public Counterparty(Integer accountNumber, Integer sortCode) {
     this.accountNumber = accountNumber;
     this.sortCode = sortCode;
+  }
+
+  public Integer getAccountNumber() {
+    return accountNumber;
+  }
+
+  public Integer getSortCode() {
+    return sortCode;
+  }
+
+  public boolean isNonEmpty() {
+    return accountNumber != null && sortCode != null;
   }
 }
