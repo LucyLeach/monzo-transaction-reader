@@ -30,7 +30,8 @@ class TagParser {
   private String parseSingleTag(String notes, int totalAmount) throws ParsingException {
     if (notes.trim().contains(" ")) {
       //Try interpreting with amount
-      var splitNoteOrException = createSplitNote(notes);
+      var isNegativeTotal = totalAmount < 0;
+      var splitNoteOrException = createSplitNote(notes, isNegativeTotal);
       var splitNote = splitNoteOrException.getResultOrThrow();
       if(splitNote.getAmount() == null) {
         throw new ParsingException("Cannot have single tag using \"rest\" format");
@@ -45,14 +46,15 @@ class TagParser {
   }
 
   private Map<String, Integer> parseMultipleTags(String notes, int totalAmount) throws ParsingException {
+    var isNegativeTotal = totalAmount < 0;
     var splitNotesOrExceptions = Stream.of(notes.split(";"))
         .map(String::trim)
-        .map(this::createSplitNote)
+        .map((String note) -> createSplitNote(note, isNegativeTotal))
         .collect(toSet());
 
     var splitNotes = ResultOrException.throwAllExceptionsOrReturnResults(splitNotesOrExceptions);
 
-    Set<SplitNote> splitNotesAllWithAmounts = fillInMissingAmountOrFail(totalAmount, splitNotes);
+    var splitNotesAllWithAmounts = fillInMissingAmountOrFail(totalAmount, splitNotes);
     checkForDuplicateTags(splitNotesAllWithAmounts);
     //noinspection ConstantConditions - we know that getAmount won't be null because the method name says so
     return splitNotesAllWithAmounts.stream().collect(Collectors.toMap(SplitNote::getTag, SplitNote::getAmount));
@@ -88,20 +90,23 @@ class TagParser {
     return splitNotesAllWithAmounts;
   }
 
-  private ResultOrException<SplitNote> createSplitNote(String note) {
+  private ResultOrException<SplitNote> createSplitNote(String note, boolean negativeTotal) {
     var splitNoteArr = note.split(" ");
     if(splitNoteArr.length != 2) {
       return ResultOrException.createException(new ParsingException("Note " + note + " is in incorrect format"));
     }
 
-    String tag = splitNoteArr[1].replaceFirst("#", "");
+    var tag = splitNoteArr[1].replaceFirst("#", "");
 
     if(splitNoteArr[0].equals("rest")) {
       return ResultOrException.createResult(new SplitNote(tag, null));
     } else {
       try {
         var positivePoundAmount = Double.parseDouble(splitNoteArr[0]);
-        var amount = switchAmountToNegativePence(positivePoundAmount);
+        var amount = switchAmountToPence(positivePoundAmount);
+        if(negativeTotal) {
+          amount = -1 * amount;
+        }
         return ResultOrException.createResult(new SplitNote(tag, amount));
       } catch(NumberFormatException e) {
         return ResultOrException.createException(new ParsingException(note + " does not start with either rest or an amount"));
@@ -109,8 +114,8 @@ class TagParser {
     }
   }
 
-  private int switchAmountToNegativePence(double positivePoundAmount) {
-    return (int) Math.round(positivePoundAmount * -100d);
+  private static int switchAmountToPence(double poundAmount) {
+    return (int) Math.round(poundAmount * 100d);
   }
 
   class SplitNote {

@@ -250,8 +250,8 @@ public class TransactionProcessorTest {
 
   @Test
   public void testTransfersSimpleTag() {
-    var transferInResult = createTransferTransaction("Simple tag", Map.of("Tag1", 5340));
-    var transferOutResult = createTransferTransaction("Simple tag", Map.of("Tag1", -5340));
+    var transferInResult = createTransferTransaction("Simple tag", Map.of("Tag1", 3.9), 390);
+    var transferOutResult = createTransferTransaction("Simple tag", Map.of("Tag1", 32.7), -3270);
 
     var result = UNDER_TEST.process(new TransactionList(transferInResult.getOriginalTransaction(), transferOutResult.getOriginalTransaction()), emptyClientDetails());
 
@@ -263,8 +263,8 @@ public class TransactionProcessorTest {
 
   @Test
   public void testTransfersComplexTag() {
-    var transferInResult = createTransferTransaction("Complex tag", Map.of("Tag1", 5340, "Tag2", 6729, "Tag3", 1111));
-    var transferOutResult = createTransferTransaction("Complex tag", Map.of("Tag1", -5340, "Tag2", -6729, "Tag3", -1111));
+    var transferInResult = createTransferTransaction("Complex tag", Map.of("Tag1", 53.4, "Tag2", 67.29, "Tag3", 11.11), 13180);
+    var transferOutResult = createTransferTransaction("Complex tag", Map.of("Tag1", 53.4, "Tag2", 67.29, "Tag3", 11.11), -13180);
 
     var result = UNDER_TEST.process(new TransactionList(transferInResult.getOriginalTransaction(), transferOutResult.getOriginalTransaction()), emptyClientDetails());
 
@@ -378,11 +378,10 @@ public class TransactionProcessorTest {
     return new SuccessfulProcessorResult(inputTransaction, Set.of(processedTransaction));
   }
 
-  private static SuccessfulProcessorResult createTransferTransaction(String testName, Map<String, Integer> tagsAndAmounts) {
+  private static SuccessfulProcessorResult createTransferTransaction(String testName, Map<String, Double> tagsAndAmounts, int totalAmount) {
     var dateString = "2018-01-09T08:30:00.0Z";
     var date = ZonedDateTime.of(2018, 1, 9, 8, 30, 0, 0, ZoneId.of("UTC"));
-    var notes = tagsAndAmounts.entrySet().stream().map(e -> (-0.01 * e.getValue()) + " #" + e.getKey()).collect(joining(";"));
-    var totalAmount = tagsAndAmounts.values().stream().mapToInt(Integer::intValue).sum();
+    var notes = tagsAndAmounts.entrySet().stream().map(e -> e.getValue() + " #" + e.getKey()).collect(joining(";"));
     var isIn = totalAmount > 0;
     var transactionId = testName + (isIn ? " in" : " out");
     var counterparty = new Counterparty(123, 456);
@@ -390,9 +389,13 @@ public class TransactionProcessorTest {
     var inputTransaction = new Transaction(transactionId, totalAmount, "GBP", dateString, notes, null, description, counterparty);
     var expectedWhere = counterparty.getAccountNumber() + "/" + counterparty.getSortCode() + " - " + description;
     var processedTransactions = tagsAndAmounts.entrySet().stream()
-      .map(e -> new TransferTransaction(transactionId, date, new Money(e.getValue(), "GBP"), expectedWhere, e.getKey()))
+      .map(e -> new TransferTransaction(transactionId, date, new Money(isIn ? convertToPence(e.getValue()) : -1 * convertToPence(e.getValue()), "GBP"), expectedWhere, e.getKey()))
       .collect(toSet());
     return new SuccessfulProcessorResult(inputTransaction, processedTransactions);
+  }
+
+  private static int convertToPence(double poundAmount) {
+    return (int) Math.round(poundAmount * 100d);
   }
 
   private static void checkForNulls(TransactionProcessorResult result) {

@@ -24,12 +24,26 @@ public class TagParserTest {
   }
 
   @Test
-  public void testSingleTagWithAmount() throws ParsingException {
+  public void testSingleTagWithAmount_PositiveTotal() throws ParsingException {
+    var resultMap = UNDER_TEST.parseTags("1.7 #Tag", 170);
+    assertNotNull(resultMap);
+    assertEquals(resultMap.size(), 1);
+    assertTrue(resultMap.containsKey("Tag"));
+    assertEquals(resultMap.get("Tag"), Integer.valueOf(170));
+  }
+
+  @Test
+  public void testSingleTagWithAmount_NegativeTotal() throws ParsingException {
     var resultMap = UNDER_TEST.parseTags("1.7 #Tag", -170);
     assertNotNull(resultMap);
     assertEquals(resultMap.size(), 1);
     assertTrue(resultMap.containsKey("Tag"));
     assertEquals(resultMap.get("Tag"), Integer.valueOf(-170));
+  }
+
+  @Test(expected = ParsingException.class)
+  public void testSingleTagWithIncorrectAmount() throws ParsingException {
+    UNDER_TEST.parseTags("1.8 #Tag", 170);
   }
 
   @Test
@@ -47,7 +61,18 @@ public class TagParserTest {
   }
 
   @Test
-  public void testMultiTags() throws ParsingException {
+  public void testMultiTags_PositiveTotal() throws ParsingException {
+    var resultMap = UNDER_TEST.parseTags("1.7 #FirstTag; 2.8 #SecondTag", 450);
+    assertNotNull(resultMap);
+    assertEquals(resultMap.size(), 2);
+    assertTrue(resultMap.containsKey("FirstTag"));
+    assertEquals(resultMap.get("FirstTag"), Integer.valueOf(170));
+    assertTrue(resultMap.containsKey("SecondTag"));
+    assertEquals(resultMap.get("SecondTag"), Integer.valueOf(280));
+  }
+
+  @Test
+  public void testMultiTags_NegativeTotal() throws ParsingException {
     var resultMap = UNDER_TEST.parseTags("1.7 #FirstTag; 2.8 #SecondTag", -450);
     assertNotNull(resultMap);
     assertEquals(resultMap.size(), 2);
@@ -58,7 +83,18 @@ public class TagParserTest {
   }
 
   @Test
-  public void testMultiTagsWithRest() throws ParsingException {
+  public void testMultiTagsWithRest_PositiveTotal() throws ParsingException {
+    var resultMap = UNDER_TEST.parseTags("1.7 #FirstTag; rest #SecondTag", 450);
+    assertNotNull(resultMap);
+    assertEquals(resultMap.size(), 2);
+    assertTrue(resultMap.containsKey("FirstTag"));
+    assertEquals(resultMap.get("FirstTag"), Integer.valueOf(170));
+    assertTrue(resultMap.containsKey("SecondTag"));
+    assertEquals(resultMap.get("SecondTag"), Integer.valueOf(280));
+  }
+
+  @Test
+  public void testMultiTagsWithRest_NegativeTotal() throws ParsingException {
     var resultMap = UNDER_TEST.parseTags("1.7 #FirstTag; rest #SecondTag", -450);
     assertNotNull(resultMap);
     assertEquals(resultMap.size(), 2);
