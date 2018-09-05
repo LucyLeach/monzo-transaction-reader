@@ -77,14 +77,9 @@ public class TransactionProcessor {
     var toIgnore = !inDetails || original.getAmount() == 0;
     if(toIgnore) {
       return createIgnoredResult(original);
-    } else if(isInTransaction) {
-      var tag = clientDetails.getPotsToRecogniseIn().get(potId);
-      var processedTransaction = new TransferIn(original.getId(), convertDateTime(original.getCreated()), new Money(original.getAmount(), original.getCurrency()),
-          original.getDescription(), false, tag);
-      return createProcessedResult(original, Set.of(processedTransaction));
     } else {
-      var tag = clientDetails.getPotsToRecogniseOut().get(potId);
-      var processedTransaction = new TransferOut(original.getId(), convertDateTime(original.getCreated()), new Money(original.getAmount(), original.getCurrency()),
+      var tag = isInTransaction ? clientDetails.getPotsToRecogniseIn().get(potId) : clientDetails.getPotsToRecogniseOut().get(potId);
+      var processedTransaction = new TransferTransaction(original.getId(), convertDateTime(original.getCreated()), new Money(original.getAmount(), original.getCurrency()),
           original.getDescription(), tag);
       return createProcessedResult(original, Set.of(processedTransaction));
     }
@@ -108,15 +103,8 @@ public class TransactionProcessor {
   }
 
   private static Function<Map.Entry<String, Integer>, ProcessedTransaction> createTransferTransactionWithTag(Transaction original) {
-    return entry -> {
-      if(entry.getValue() > 0) {
-        return new TransferIn(original.getId(), convertDateTime(original.getCreated()), new Money(entry.getValue(), original.getCurrency()),
-            createWhereFromString(original.getDescription(), original.getCounterparty()), false, entry.getKey());
-      } else {
-        return new TransferOut(original.getId(), convertDateTime(original.getCreated()), new Money(entry.getValue(), original.getCurrency()),
-            createWhereFromString(original.getDescription(), original.getCounterparty()), entry.getKey());
-      }
-    };
+    return entry -> new TransferTransaction(original.getId(), convertDateTime(original.getCreated()), new Money(entry.getValue(), original.getCurrency()),
+        createWhereFromString(original.getDescription(), original.getCounterparty()), entry.getKey());
   }
 
   private static ZonedDateTime convertDateTime(String dateTimeString) {

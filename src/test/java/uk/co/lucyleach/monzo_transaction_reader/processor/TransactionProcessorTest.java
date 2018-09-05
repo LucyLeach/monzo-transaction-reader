@@ -374,12 +374,7 @@ public class TransactionProcessorTest {
     var inOrOut = isIn ? "in" : "out";
     var transactionId = "Pot transfer " + inOrOut;
     var inputTransaction = new Transaction(transactionId, amount, "GBP", dateString, "Notes", null, potId, emptyCounterparty());
-    ProcessedTransaction processedTransaction;
-    if(isIn) {
-      processedTransaction = new TransferIn(transactionId, date, new Money(amount, "GBP"), potId, false, tag);
-    } else {
-      processedTransaction = new TransferOut(transactionId, date, new Money(amount, "GBP"), potId, tag);
-    }
+    var processedTransaction = new TransferTransaction(transactionId, date, new Money(amount, "GBP"), potId, tag);
     return new SuccessfulProcessorResult(inputTransaction, Set.of(processedTransaction));
   }
 
@@ -394,16 +389,9 @@ public class TransactionProcessorTest {
     var description = "Description";
     var inputTransaction = new Transaction(transactionId, totalAmount, "GBP", dateString, notes, null, description, counterparty);
     var expectedWhere = counterparty.getAccountNumber() + "/" + counterparty.getSortCode() + " - " + description;
-    Set<ProcessedTransaction> processedTransactions;
-    if(isIn) {
-      processedTransactions = tagsAndAmounts.entrySet().stream()
-        .map(e -> new TransferIn(transactionId, date, new Money(e.getValue(), "GBP"), expectedWhere, false, e.getKey()))
-        .collect(toSet());
-    } else {
-      processedTransactions = tagsAndAmounts.entrySet().stream()
-        .map(e -> new TransferOut(transactionId, date, new Money(e.getValue(), "GBP"), expectedWhere, e.getKey()))
-        .collect(toSet());
-    }
+    var processedTransactions = tagsAndAmounts.entrySet().stream()
+      .map(e -> new TransferTransaction(transactionId, date, new Money(e.getValue(), "GBP"), expectedWhere, e.getKey()))
+      .collect(toSet());
     return new SuccessfulProcessorResult(inputTransaction, processedTransactions);
   }
 
