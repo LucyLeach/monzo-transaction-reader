@@ -52,7 +52,7 @@ class TagParser {
         .map((String note) -> createSplitNote(note, isNegativeTotal))
         .collect(toSet());
 
-    var splitNotes = ResultOrException.throwAllExceptionsOrReturnResults(splitNotesOrExceptions);
+    var splitNotes = SplitNoteOrException.throwAllExceptionsOrReturnResults(splitNotesOrExceptions);
 
     var splitNotesAllWithAmounts = fillInMissingAmountOrFail(totalAmount, splitNotes);
     checkForDuplicateTags(splitNotesAllWithAmounts);
@@ -90,16 +90,16 @@ class TagParser {
     return splitNotesAllWithAmounts;
   }
 
-  private ResultOrException<SplitNote> createSplitNote(String note, boolean negativeTotal) {
+  private SplitNoteOrException createSplitNote(String note, boolean negativeTotal) {
     var splitNoteArr = note.split(" ");
     if(splitNoteArr.length != 2) {
-      return ResultOrException.createException(new ParsingException("Note " + note + " is in incorrect format"));
+      return SplitNoteOrException.createException(new ParsingException("Note " + note + " is in incorrect format"));
     }
 
     var tag = splitNoteArr[1].replaceFirst("#", "");
 
     if(splitNoteArr[0].equals("rest")) {
-      return ResultOrException.createResult(new SplitNote(tag, null));
+      return SplitNoteOrException.createResult(new SplitNote(tag, null));
     } else {
       try {
         var positivePoundAmount = Double.parseDouble(splitNoteArr[0]);
@@ -107,9 +107,9 @@ class TagParser {
         if(negativeTotal) {
           amount = -1 * amount;
         }
-        return ResultOrException.createResult(new SplitNote(tag, amount));
+        return SplitNoteOrException.createResult(new SplitNote(tag, amount));
       } catch(NumberFormatException e) {
-        return ResultOrException.createException(new ParsingException(note + " does not start with either rest or an amount"));
+        return SplitNoteOrException.createException(new ParsingException(note + " does not start with either rest or an amount"));
       }
     }
   }

@@ -13,21 +13,21 @@ import static java.util.stream.Collectors.toSet;
  * Date: 27/08/2018
  * Time: 13:23
  */
-class ResultOrException<RES> {
-  private final Either<RES, ParsingException> either;
+class SplitNoteOrException {
+  private final Either<TagParser.SplitNote, ParsingException> either;
 
-  private ResultOrException(Either<RES, ParsingException> either) {
+  private SplitNoteOrException(Either<TagParser.SplitNote, ParsingException> either) {
     this.either = either;
   }
 
-  static <RES> ResultOrException<RES> createResult(RES res) {
-    checkNotNull(res);
-    return new ResultOrException<>(Either.createLeft(res));
+  static SplitNoteOrException createResult(TagParser.SplitNote splitNote) {
+    checkNotNull(splitNote);
+    return new SplitNoteOrException(Either.createLeft(splitNote));
   }
 
-  static <RES> ResultOrException<RES> createException(ParsingException exception) {
+  static SplitNoteOrException createException(ParsingException exception) {
     checkNotNull(exception);
-    return new ResultOrException<>(Either.createRight(exception));
+    return new SplitNoteOrException(Either.createRight(exception));
   }
 
   boolean isSuccess() {
@@ -38,7 +38,7 @@ class ResultOrException<RES> {
     return !isSuccess();
   }
 
-  RES getResult() {
+  TagParser.SplitNote getResult() {
     return either.getLeft();
   }
 
@@ -46,7 +46,7 @@ class ResultOrException<RES> {
     return either.getRight();
   }
 
-  RES getResultOrThrow() throws ParsingException {
+  TagParser.SplitNote getResultOrThrow() throws ParsingException {
     if(isSuccess()) {
       return getResult();
     } else {
@@ -54,15 +54,15 @@ class ResultOrException<RES> {
     }
   }
 
-  static <RES> Collection<RES> throwAllExceptionsOrReturnResults(Collection<ResultOrException<RES>> resultsOrExceptions) throws ParsingException {
-    if(resultsOrExceptions.stream().anyMatch(ResultOrException::isException)) {
+  static Collection<TagParser.SplitNote> throwAllExceptionsOrReturnResults(Collection<SplitNoteOrException> resultsOrExceptions) throws ParsingException {
+    if(resultsOrExceptions.stream().anyMatch(SplitNoteOrException::isException)) {
       var exceptionMessages = resultsOrExceptions.stream()
-          .filter(ResultOrException::isException)
+          .filter(SplitNoteOrException::isException)
           .map(roe -> roe.getException().getMessage())
           .collect(Collectors.joining("; "));
       throw new ParsingException("Multiple errors: " + exceptionMessages);
     } else {
-      return resultsOrExceptions.stream().map(ResultOrException::getResult).collect(toSet());
+      return resultsOrExceptions.stream().map(SplitNoteOrException::getResult).collect(toSet());
     }
   }
 }
