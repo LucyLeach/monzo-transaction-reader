@@ -4,6 +4,8 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import uk.co.lucyleach.monzo_transaction_reader.processor.ClientProcessingDetails;
+import uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProcessor;
 
 import java.io.IOException;
 
@@ -16,6 +18,7 @@ public class MonzoTransactionReaderRunner {
   private final ClientAccountDetailsReader clientAccountDetailsReader;
   private final CredentialLoader credentialLoader;
   private final TransactionLoader transactionLoader;
+  private final TransactionProcessor transactionProcessor;
 
   private MonzoTransactionReaderRunner(String pathToDataStore) throws IOException {
     HttpTransport httpTransport = new NetHttpTransport();
@@ -24,12 +27,16 @@ public class MonzoTransactionReaderRunner {
     this.clientAccountDetailsReader = new ClientAccountDetailsReader();
     this.credentialLoader = new CredentialLoader(httpTransport, jsonFactory, pathToDataStore);
     this.transactionLoader = new TransactionLoader(httpTransport, jsonFactory);
+    this.transactionProcessor = new TransactionProcessor();
   }
 
   private void run(String pathToProps) throws IOException {
     var props = clientAccountDetailsReader.read(pathToProps);
     var credential = credentialLoader.load(props.getClientId(), props.getClientSecret());
     var transactionList = transactionLoader.load(credential, props.getAccountId());
+
+    var clientProcessingDetails = new ClientProcessingDetails(props.getPotsToRecogniseIn(), props.getPotsToRecogniseOut());
+    var processorResult = transactionProcessor.process(transactionList, clientProcessingDetails);
     var debug = 1;
   }
 
