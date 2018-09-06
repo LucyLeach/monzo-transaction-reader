@@ -9,6 +9,7 @@ import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Merchant;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.TransactionList;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.*;
+import uk.co.lucyleach.monzo_transaction_reader.utils.Pair;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -101,7 +102,7 @@ public class TransactionProcessorTest {
     var notesWithoutHashes = originalTransaction.getNotes().replace("#", "");
     var inputWithoutHashes = new Transaction(originalTransaction.getId(), originalTransaction.getAmount(), originalTransaction.getCurrency(),
         originalTransaction.getCreated(), notesWithoutHashes, originalTransaction.getMerchant(), originalTransaction.getDescription(), emptyCounterparty());
-    var expectedSuccessfulResultWoHashes = new SuccessfulProcessorResult(inputWithoutHashes, expectedSuccessfulResult.getProcessedTransactions());
+    var expectedSuccessfulResultWoHashes = new InputAndOutputTransactions(inputWithoutHashes, expectedSuccessfulResult.getProcessedTransactions());
 
     var result = UNDER_TEST.process(new TransactionList(inputWithoutHashes), emptyClientDetails());
 
@@ -288,9 +289,9 @@ public class TransactionProcessorTest {
   }
 
   private static void checkForUnsuccessfulResults(Set<Transaction> inputSet, TransactionProcessorResult result) {
-    var unsuccessfulTransactions = result.getUnsuccessfulResults().stream().map(UnsuccessfulProcessorResult::getOriginalTransaction).collect(toSet());
+    var unsuccessfulTransactions = result.getUnsuccessfulResults();
     assertEquals("Should have same number of unsuccessful transactions as input", inputSet.size(), unsuccessfulTransactions.size());
-    assertTrue("Inputs missing or changed", unsuccessfulTransactions.containsAll(inputSet));
+    assertTrue("Inputs missing or changed", unsuccessfulTransactions.keySet().containsAll(inputSet));
   }
 
   private static Transaction createSimpleSaleTransaction(String testName, String notes, int totalAmount) {
@@ -310,33 +311,32 @@ public class TransactionProcessorTest {
     assertTrue("There should be no ignored transactions", result.getIgnoredTransactions().isEmpty());
   }
 
-  private static void checkSuccessfulResult(Collection<SuccessfulProcessorResult> outputResults, SuccessfulProcessorResult... expectedResults) {
+  private static void checkSuccessfulResult(Map<Transaction, Set<? extends ProcessedTransaction>> outputResults, InputAndOutputTransactions... expectedResults) {
     assertEquals("There should be " + expectedResults.length + " successful results", expectedResults.length, outputResults.size());
     Stream.of(expectedResults).forEach(expResult -> findAndCheckTransaction(expResult.getOriginalTransaction(), expResult.getProcessedTransactions(), outputResults));
   }
 
-  private static void findAndCheckTransaction(Transaction inputTransaction, Collection<? extends ProcessedTransaction> expectedOutputTransactions, Collection<SuccessfulProcessorResult> results) {
-    var matchingResults = results.stream().filter(r -> r.getOriginalTransaction().equals(inputTransaction)).collect(toList());
-    assertEquals(inputTransaction.getId() + " should have one entry in the successful results", 1, matchingResults.size());
-    var singleSuccessfulResult = matchingResults.get(0);
+  private static void findAndCheckTransaction(Transaction inputTransaction, Collection<? extends ProcessedTransaction> expectedOutputTransactions, Map<Transaction, Set<? extends ProcessedTransaction>> results) {
+    assertTrue(inputTransaction.getId() + " should have an entry in the successful results", results.containsKey(inputTransaction));
+    var processedResults = results.get(inputTransaction);
     assertEquals("Should have " + expectedOutputTransactions.size() + " processed transactions for input " + inputTransaction.getId(),
-        expectedOutputTransactions.size(), singleSuccessfulResult.getProcessedTransactions().size());
-    assertTrue("Difference in processed transactions for input " + inputTransaction.getId(), singleSuccessfulResult.getProcessedTransactions().containsAll(expectedOutputTransactions));
+        expectedOutputTransactions.size(), processedResults.size());
+    assertTrue("Difference in processed transactions for input " + inputTransaction.getId(), processedResults.containsAll(expectedOutputTransactions));
   }
 
-  private static SuccessfulProcessorResult createSingleSaleTransaction() {
+  private static InputAndOutputTransactions createSingleSaleTransaction() {
     return createSingleSaleTransaction(1);
   }
 
-  private static SuccessfulProcessorResult createSingleSaleTransaction(int seed) {
+  private static InputAndOutputTransactions createSingleSaleTransaction(int seed) {
     return createSaleTransactions(seed, Map.of("TestTag", seed * 520));
   }
 
-  private static SuccessfulProcessorResult createSaleTransactions(int seed, Map<String, Integer> tagsAndAmounts) {
+  private static InputAndOutputTransactions createSaleTransactions(int seed, Map<String, Integer> tagsAndAmounts) {
     return createSaleTransactions(seed, tagsAndAmounts, Optional.empty());
   }
 
-  private static SuccessfulProcessorResult createSaleTransactions(int seed, Map<String, Integer> tagsAndAmounts, Optional<Integer> restAmount) {
+  private static InputAndOutputTransactions createSaleTransactions(int seed, Map<String, Integer> tagsAndAmounts, Optional<Integer> restAmount) {
     var merchantName = "MERCHANT_NAME" + seed;
     var merchant = new Merchant(merchantName);
     var id = "BUY_TRANSACTION_ID" + seed;
@@ -360,14 +360,14 @@ public class TransactionProcessorTest {
     var outputTransactions = allTagsAndAmounts.entrySet().stream()
         .map(tagAndAmount -> new SaleTransaction(id, date, new Money(-1 * tagAndAmount.getValue(), currency), merchantName, tagAndAmount.getKey()))
         .collect(toList());
-    return new SuccessfulProcessorResult(inputTransaction, outputTransactions);
+    return new InputAndOutputTransactions(inputTransaction, outputTransactions);
   }
 
-  private static SuccessfulProcessorResult createPotTransaction(String potId, String tag, boolean isIn) {
+  private static InputAndOutputTransactions createPotTransaction(String potId, String tag, boolean isIn) {
     return createPotTransaction(potId, tag, isIn, isIn ? 230 : -410);
   }
 
-  private static SuccessfulProcessorResult createPotTransaction(String potId, String tag, boolean isIn, int amount) {
+  private static InputAndOutputTransactions createPotTransaction(String potId, String tag, boolean isIn, int amount) {
     assertTrue("Pot ID must start with pot_", potId.startsWith(POT_PREFIX));
     var dateString = "2018-01-04T08:00:00.0Z";
     var date = ZonedDateTime.of(2018, 1, 4, 8, 0, 0, 0, ZoneId.of("UTC"));
@@ -375,10 +375,10 @@ public class TransactionProcessorTest {
     var transactionId = "Pot transfer " + inOrOut;
     var inputTransaction = new Transaction(transactionId, amount, "GBP", dateString, "Notes", null, potId, emptyCounterparty());
     var processedTransaction = new TransferTransaction(transactionId, date, new Money(amount, "GBP"), potId, tag);
-    return new SuccessfulProcessorResult(inputTransaction, Set.of(processedTransaction));
+    return new InputAndOutputTransactions(inputTransaction, Set.of(processedTransaction));
   }
 
-  private static SuccessfulProcessorResult createTransferTransaction(String testName, Map<String, Double> tagsAndAmounts, int totalAmount) {
+  private static InputAndOutputTransactions createTransferTransaction(String testName, Map<String, Double> tagsAndAmounts, int totalAmount) {
     var dateString = "2018-01-09T08:30:00.0Z";
     var date = ZonedDateTime.of(2018, 1, 9, 8, 30, 0, 0, ZoneId.of("UTC"));
     var notes = tagsAndAmounts.entrySet().stream().map(e -> e.getValue() + " #" + e.getKey()).collect(joining(";"));
@@ -391,7 +391,7 @@ public class TransactionProcessorTest {
     var processedTransactions = tagsAndAmounts.entrySet().stream()
       .map(e -> new TransferTransaction(transactionId, date, new Money(isIn ? convertToPence(e.getValue()) : -1 * convertToPence(e.getValue()), "GBP"), expectedWhere, e.getKey()))
       .collect(toSet());
-    return new SuccessfulProcessorResult(inputTransaction, processedTransactions);
+    return new InputAndOutputTransactions(inputTransaction, processedTransactions);
   }
 
   private static int convertToPence(double poundAmount) {
@@ -417,5 +417,19 @@ public class TransactionProcessorTest {
 
   private static Counterparty emptyCounterparty() {
     return new Counterparty(null, null);
+  }
+
+  private static class InputAndOutputTransactions extends Pair<Transaction, Collection<? extends ProcessedTransaction>> {
+    InputAndOutputTransactions(Transaction transaction, Collection<? extends ProcessedTransaction> processedTransactions) {
+      super(transaction, processedTransactions);
+    }
+
+    Transaction getOriginalTransaction() {
+      return getA();
+    }
+
+    Collection<? extends ProcessedTransaction> getProcessedTransactions() {
+      return getB();
+    }
   }
 }

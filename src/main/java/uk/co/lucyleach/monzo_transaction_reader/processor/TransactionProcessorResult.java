@@ -1,10 +1,13 @@
 package uk.co.lucyleach.monzo_transaction_reader.processor;
 
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransaction;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -19,18 +22,16 @@ public class TransactionProcessorResult {
     this.processorResults = Set.copyOf(results);
   }
 
-  public Collection<SuccessfulProcessorResult> getSuccessfulResults() {
+  public Map<Transaction, Set<? extends ProcessedTransaction>> getSuccessfulResults() {
     return processorResults.stream()
         .filter(ProcessorResult::isProcessedResult)
-        .map(res -> new SuccessfulProcessorResult(res.getOriginalTransaction(), res.getProcessedTransactions()))
-        .collect(toSet());
+        .collect(toMap(ProcessorResult::getOriginalTransaction, ProcessorResult::getProcessedTransactions));
   }
 
-  public Collection<UnsuccessfulProcessorResult> getUnsuccessfulResults() {
+  public Map<Transaction, String> getUnsuccessfulResults() {
     return processorResults.stream()
         .filter(ProcessorResult::isErrorResult)
-        .map(res -> new UnsuccessfulProcessorResult(res.getOriginalTransaction(), res.getErrorMessage()))
-        .collect(toSet());
+        .collect(toMap(ProcessorResult::getOriginalTransaction, ProcessorResult::getErrorMessage));
   }
 
   public Collection<Transaction> getIgnoredTransactions() {
