@@ -55,12 +55,13 @@ class SplitNoteOrException {
   }
 
   static Collection<TagParser.SplitNote> throwAllExceptionsOrReturnResults(Collection<SplitNoteOrException> resultsOrExceptions) throws ParsingException {
-    if(resultsOrExceptions.stream().anyMatch(SplitNoteOrException::isException)) {
+    var numExceptions = resultsOrExceptions.stream().filter(SplitNoteOrException::isException).count();
+    if(numExceptions > 0) {
       var exceptionMessages = resultsOrExceptions.stream()
           .filter(SplitNoteOrException::isException)
           .map(roe -> roe.getException().getMessage())
           .collect(Collectors.joining("; "));
-      throw new ParsingException("Multiple errors: " + exceptionMessages);
+      throw new ParsingException(numExceptions > 1 ? "Multiple errors: " + exceptionMessages : exceptionMessages);
     } else {
       return resultsOrExceptions.stream().map(SplitNoteOrException::getResult).collect(toSet());
     }
