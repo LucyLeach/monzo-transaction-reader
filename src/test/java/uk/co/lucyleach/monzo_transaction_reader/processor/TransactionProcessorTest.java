@@ -155,7 +155,7 @@ public class TransactionProcessorTest {
     var potTransferInResult = createPotTransaction(potId, "MappedTag", true);
     var potTransferOut = createPotTransaction(potId, "tag", false).getOriginalTransaction();
 
-    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTag"), Map.of());
+    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTag"), Map.of(), autoTagMerchants, autoTagAccounts);
 
     var result = UNDER_TEST.process(new TransactionList(potTransferInResult.getOriginalTransaction(), potTransferOut), clientDetails);
 
@@ -171,7 +171,7 @@ public class TransactionProcessorTest {
     var potTransferIn = createPotTransaction(potId, "tag", true).getOriginalTransaction();
     var potTransferOutResult = createPotTransaction(potId, "MappedTag", false);
 
-    var clientDetails = new ClientProcessingDetails(Map.of(), Map.of(potId, "MappedTag"));
+    var clientDetails = new ClientProcessingDetails(Map.of(), Map.of(potId, "MappedTag"), autoTagMerchants, autoTagAccounts);
 
     var result = UNDER_TEST.process(new TransactionList(potTransferOutResult.getOriginalTransaction(), potTransferIn), clientDetails);
 
@@ -187,7 +187,7 @@ public class TransactionProcessorTest {
     var potTransferInResult = createPotTransaction(potId, "MappedTagIn", true);
     var potTransferOutResult = createPotTransaction(potId, "MappedTagOut", false);
 
-    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTagIn"), Map.of(potId, "MappedTagOut"));
+    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTagIn"), Map.of(potId, "MappedTagOut"), autoTagMerchants, autoTagAccounts);
 
     var result = UNDER_TEST.process(new TransactionList(potTransferOutResult.getOriginalTransaction(), potTransferInResult.getOriginalTransaction()), clientDetails);
 
@@ -205,7 +205,7 @@ public class TransactionProcessorTest {
     var potTransferInResult = createPotTransaction(potId, "MappedTagIn", true, 0);
     var potTransferOutResult = createPotTransaction(potId, "MappedTagOut", false, 0);
 
-    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTagIn"), Map.of(potId, "MappedTagOut"));
+    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTagIn"), Map.of(potId, "MappedTagOut"), autoTagMerchants, autoTagAccounts);
 
     var result = UNDER_TEST.process(new TransactionList(saleTransaction, potTransferOutResult.getOriginalTransaction(), potTransferInResult.getOriginalTransaction()), clientDetails);
 
@@ -226,7 +226,7 @@ public class TransactionProcessorTest {
     var ignorePotOutTransaction = new Transaction(potId + " out", -5631, "GBP", dateString, IGNORE_TAG, null, potId, emptyCounterparty());
     var ignoreTransferIn = new Transaction("Transfer in with ignore", 7312, "GBP", dateString, IGNORE_TAG, null, "Description", new Counterparty(123, 456));
     var ignoreTransferOut = new Transaction("Transfer out with ignore", -7312, "GBP", dateString, IGNORE_TAG, null, "Description", new Counterparty(123, 456));
-    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTagIn"), Map.of(potId, "MappedTagOut"));
+    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTagIn"), Map.of(potId, "MappedTagOut"), autoTagMerchants, autoTagAccounts);
 
     var result = UNDER_TEST.process(new TransactionList(justIgnoreTag, ignoreTagMiddle, ignorePotInTransaction, ignorePotOutTransaction, ignoreTransferIn, ignoreTransferOut), clientDetails);
 
@@ -415,7 +415,7 @@ public class TransactionProcessorTest {
   }
 
   private static ClientProcessingDetails emptyClientDetails() {
-    return new ClientProcessingDetails(Map.of(), Map.of());
+    return new ClientProcessingDetails(Map.of(), Map.of(), autoTagMerchants, autoTagAccounts);
   }
 
   private static Counterparty emptyCounterparty() {

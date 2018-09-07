@@ -25,7 +25,9 @@ class ClientAccountDetailsReader {
     var accountId = readNonNullProperty("account_id", properties, filePath);
     var potsToRecogniseIn = readMap("pots_to_recognise_in", properties, filePath);
     var potsToRecogniseOut = readMap("pots_to_recognise_out", properties, filePath);
-    return new ClientAccountDetails(clientId, clientSecret, accountId, potsToRecogniseIn, potsToRecogniseOut);
+    var autoTagMerchants = readMap("merchants_to_auto_tag", properties, filePath);
+    var autoTagAccounts = readMap("accounts_to_auto_tag", properties, filePath);
+    return new ClientAccountDetails(clientId, clientSecret, accountId, potsToRecogniseIn, potsToRecogniseOut, autoTagMerchants, autoTagAccounts);
   }
 
   private String readNonNullProperty(String propertyName, Properties properties, String filePath) throws IOException {

@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -27,6 +28,10 @@ public class ClientAccountDetailsReaderTest {
     assertEquals(EXPECTED_CLIENT_ID, details.getClientId());
     assertEquals(EXPECTED_CLIENT_SECRET, details.getClientSecret());
     assertEquals(EXPECTED_ACCOUNT_ID, details.getAccountId());
+    assertEquals(Map.of("POT_ID_1", "#Foo", "POT_ID_2", "#Bar"), details.getPotsToRecogniseIn());
+    assertEquals(Map.of("POT_ID_3", "#Foo", "POT_ID_4", "#Bar"), details.getPotsToRecogniseOut());
+    assertEquals(Map.of("Merchant", "#MerchantTag", "OtherMerchant", "#OtherMerchantTag"), details.getAutoTagMerchants());
+    assertEquals(Map.of("123/456", "#Tag1", "789/123", "#Tag2"), details.getAutoTagAccounts());
   }
 
   @Test
@@ -67,6 +72,16 @@ public class ClientAccountDetailsReaderTest {
     } catch(IOException exception) {
       assertTrue("Error message should contain file path", exception.getMessage().contains(testPropertiesFile));
     }
+  }
+
+  @Test
+  public void testOnlyRequiredFields() throws Exception {
+    var testPropertiesFile = propertiesFileByTestName("only_req_fields");
+    var details = UNDER_TEST.read(testPropertiesFile);
+    assertNotNull("Should never return null", details);
+    assertEquals(EXPECTED_CLIENT_ID, details.getClientId());
+    assertEquals(EXPECTED_CLIENT_SECRET, details.getClientSecret());
+    assertEquals(EXPECTED_ACCOUNT_ID, details.getAccountId());
   }
 
   private void testMissingPropertyError(String missingProperty) throws URISyntaxException {
