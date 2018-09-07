@@ -1,5 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.output_model;
 
+import java.util.Objects;
+
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -32,5 +34,19 @@ public class Money {
   @Override
   public String toString() {
     return amountInPence + " " + currency;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if(this == o) return true;
+    if(o == null || getClass() != o.getClass()) return false;
+    var money = (Money) o;
+    return amountInPence == money.amountInPence &&
+        Objects.equals(currency, money.currency);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(amountInPence, currency);
   }
 }

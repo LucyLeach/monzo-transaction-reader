@@ -437,7 +437,7 @@ public class TransactionProcessorTest {
 
     var inputTransaction = new Transaction(id, totalAmount, currency, dateString, notes, merchant, description, emptyCounterparty());
     var outputTransactions = allTagsAndAmounts.entrySet().stream()
-        .map(tagAndAmount -> new SaleTransaction(id, date, new Money(-1 * tagAndAmount.getValue(), currency), merchantName, tagAndAmount.getKey()))
+        .map(tagAndAmount -> new SaleTransaction(id, date, new Money(-100 * tagAndAmount.getValue(), currency), merchantName, tagAndAmount.getKey()))
         .collect(toList());
     return new InputAndOutputTransactions(inputTransaction, outputTransactions);
   }
