@@ -20,16 +20,6 @@ class SplitNoteOrException {
     this.either = either;
   }
 
-  static SplitNoteOrException createResult(TagParser.SplitNote splitNote) {
-    checkNotNull(splitNote);
-    return new SplitNoteOrException(Either.createLeft(splitNote));
-  }
-
-  static SplitNoteOrException createException(ParsingException exception) {
-    checkNotNull(exception);
-    return new SplitNoteOrException(Either.createRight(exception));
-  }
-
   boolean isSuccess() {
     return either.isLeft();
   }
@@ -52,6 +42,16 @@ class SplitNoteOrException {
     } else {
       throw getException();
     }
+  }
+
+  static SplitNoteOrException createResult(TagParser.SplitNote splitNote) {
+    checkNotNull(splitNote);
+    return new SplitNoteOrException(Either.createLeft(splitNote));
+  }
+
+  static SplitNoteOrException createException(ParsingException exception) {
+    checkNotNull(exception);
+    return new SplitNoteOrException(Either.createRight(exception));
   }
 
   static Collection<TagParser.SplitNote> throwAllExceptionsOrReturnResults(Collection<SplitNoteOrException> resultsOrExceptions) throws ParsingException {

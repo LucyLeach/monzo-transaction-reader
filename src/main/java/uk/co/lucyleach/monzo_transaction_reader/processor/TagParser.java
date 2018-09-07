@@ -28,7 +28,7 @@ class TagParser {
   }
 
   private String parseSingleTag(String notes, int totalAmount) throws ParsingException {
-    if (notes.trim().contains(" ")) {
+    if(notes.trim().contains(" ")) {
       //Try interpreting with amount
       var isNegativeTotal = totalAmount < 0;
       var splitNoteOrException = createSplitNote(notes, isNegativeTotal);
@@ -120,7 +120,8 @@ class TagParser {
 
   class SplitNote {
     private final String tag;
-    @Nullable private final Integer amount;
+    @Nullable
+    private final Integer amount;
 
     SplitNote(String tag, @Nullable Integer amount) {
       this.tag = tag;

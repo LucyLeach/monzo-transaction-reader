@@ -3,7 +3,10 @@ package uk.co.lucyleach.monzo_transaction_reader.processor;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Counterparty;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.TransactionList;
-import uk.co.lucyleach.monzo_transaction_reader.output_model.*;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransaction;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.SaleTransaction;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.TransferTransaction;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -99,7 +102,7 @@ public class TransactionProcessor {
 
   private static Function<Map.Entry<String, Integer>, ProcessedTransaction> createSaleTransactionWithTag(Transaction original) {
     return entry -> new SaleTransaction(original.getId(), convertDateTime(original.getCreated()),
-            new Money(entry.getValue(), original.getCurrency()), original.getMerchant().getName(), entry.getKey());
+        new Money(entry.getValue(), original.getCurrency()), original.getMerchant().getName(), entry.getKey());
   }
 
   private static Function<Map.Entry<String, Integer>, ProcessedTransaction> createTransferTransactionWithTag(Transaction original) {

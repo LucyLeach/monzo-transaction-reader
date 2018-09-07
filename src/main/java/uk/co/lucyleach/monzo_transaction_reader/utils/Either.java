@@ -16,16 +16,6 @@ public class Either<L, R> {
     this.right = right;
   }
 
-  public static <L, R> Either<L, R> createLeft(L left) {
-    checkNotNull(left);
-    return new Either<>(left, null);
-  }
-
-  public static <L, R> Either<L, R> createRight(R right) {
-    checkNotNull(right);
-    return new Either<>(null, right);
-  }
-
   public L getLeft() {
     return left;
   }
@@ -36,5 +26,15 @@ public class Either<L, R> {
 
   public boolean isLeft() {
     return left != null;
+  }
+
+  public static <L, R> Either<L, R> createLeft(L left) {
+    checkNotNull(left);
+    return new Either<>(left, null);
+  }
+
+  public static <L, R> Either<L, R> createRight(R right) {
+    checkNotNull(right);
+    return new Either<>(null, right);
   }
 }

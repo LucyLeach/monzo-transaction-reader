@@ -8,7 +8,10 @@ import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Counterparty;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Merchant;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.TransactionList;
-import uk.co.lucyleach.monzo_transaction_reader.output_model.*;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransaction;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.SaleTransaction;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.TransferTransaction;
 import uk.co.lucyleach.monzo_transaction_reader.utils.Pair;
 
 import java.time.ZoneId;
@@ -215,7 +218,7 @@ public class TransactionProcessorTest {
   @Test
   public void testIgnoreTag() {
     var justIgnoreTag = createSimpleSaleTransaction("Just ignore tag", IGNORE_TAG, -2930);
-    var ignoreTagMiddle = createSimpleSaleTransaction("Ignore tag middle", "2.3 #groceries; 4.1 " + IGNORE_TAG  + "; rest #toys", -1089);
+    var ignoreTagMiddle = createSimpleSaleTransaction("Ignore tag middle", "2.3 #groceries; 4.1 " + IGNORE_TAG + "; rest #toys", -1089);
 
     var potId = POT_PREFIX + "Ignore Tag";
     var dateString = "2018-01-07T08:00:00.0Z";
@@ -389,8 +392,8 @@ public class TransactionProcessorTest {
     var inputTransaction = new Transaction(transactionId, totalAmount, "GBP", dateString, notes, new Merchant(), description, counterparty);
     var expectedWhere = counterparty.getAccountNumber() + "/" + counterparty.getSortCode() + " - " + description;
     var processedTransactions = tagsAndAmounts.entrySet().stream()
-      .map(e -> new TransferTransaction(transactionId, date, new Money(isIn ? convertToPence(e.getValue()) : -1 * convertToPence(e.getValue()), "GBP"), expectedWhere, e.getKey()))
-      .collect(toSet());
+        .map(e -> new TransferTransaction(transactionId, date, new Money(isIn ? convertToPence(e.getValue()) : -1 * convertToPence(e.getValue()), "GBP"), expectedWhere, e.getKey()))
+        .collect(toSet());
     return new InputAndOutputTransactions(inputTransaction, processedTransactions);
   }
 

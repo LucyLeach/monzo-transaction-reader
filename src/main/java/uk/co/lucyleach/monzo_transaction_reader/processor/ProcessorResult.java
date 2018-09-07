@@ -26,21 +26,6 @@ public class ProcessorResult {
     this.errorMessage = errorMessage;
   }
 
-  public static ProcessorResult createProcessedResult(Transaction originalTransaction, Set<? extends ProcessedTransaction> processedTransactions) {
-    checkNotNull(originalTransaction, processedTransactions);
-    return new ProcessorResult(originalTransaction, processedTransactions, null);
-  }
-
-  public static ProcessorResult createErrorResult(Transaction originalTransaction, String errorMessage) {
-    checkNotNull(originalTransaction, errorMessage);
-    return new ProcessorResult(originalTransaction, null, errorMessage);
-  }
-
-  public static ProcessorResult createIgnoredResult(Transaction originalTransaction) {
-    checkNotNull(originalTransaction);
-    return new ProcessorResult(originalTransaction, null, null);
-  }
-
   public boolean isProcessedResult() {
     return processedTransactions != null;
   }
@@ -65,5 +50,20 @@ public class ProcessorResult {
   @Nullable
   public String getErrorMessage() {
     return errorMessage;
+  }
+
+  public static ProcessorResult createProcessedResult(Transaction originalTransaction, Set<? extends ProcessedTransaction> processedTransactions) {
+    checkNotNull(originalTransaction, processedTransactions);
+    return new ProcessorResult(originalTransaction, processedTransactions, null);
+  }
+
+  public static ProcessorResult createErrorResult(Transaction originalTransaction, String errorMessage) {
+    checkNotNull(originalTransaction, errorMessage);
+    return new ProcessorResult(originalTransaction, null, errorMessage);
+  }
+
+  public static ProcessorResult createIgnoredResult(Transaction originalTransaction) {
+    checkNotNull(originalTransaction);
+    return new ProcessorResult(originalTransaction, null, null);
   }
 }
