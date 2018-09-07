@@ -16,7 +16,7 @@ public class TagLevelReport {
   private final Money totalAmountOut;
   private final List<ProcessedTransaction> contributingTransactions;
 
-  public TagLevelReport(String tag, Money totalAmountIn, Money totalAmountOut, List<ProcessedTransaction> contributingTransactions) {
+  public TagLevelReport(String tag, Money totalAmountIn, Money totalAmountOut, List<? extends ProcessedTransaction> contributingTransactions) {
     this.tag = tag;
     this.totalAmountIn = totalAmountIn;
     this.totalAmountOut = totalAmountOut;
@@ -24,7 +24,11 @@ public class TagLevelReport {
   }
 
   public Money getTotalAmount() {
-    return totalAmountIn.plus(totalAmountOut);
+    return totalAmountIn.add(totalAmountOut);
+  }
+
+  public String getTag() {
+    return tag;
   }
 
   @Override

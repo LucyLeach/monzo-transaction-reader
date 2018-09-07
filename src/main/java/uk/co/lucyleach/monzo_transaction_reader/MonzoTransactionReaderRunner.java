@@ -20,6 +20,7 @@ public class MonzoTransactionReaderRunner {
   private final CredentialLoader credentialLoader;
   private final TransactionLoader transactionLoader;
   private final TransactionProcessor transactionProcessor;
+  private final ReportCreator reportCreator;
 
   private MonzoTransactionReaderRunner(String pathToDataStore) throws IOException {
     HttpTransport httpTransport = new NetHttpTransport();
@@ -29,6 +30,7 @@ public class MonzoTransactionReaderRunner {
     this.credentialLoader = new CredentialLoader(httpTransport, jsonFactory, pathToDataStore);
     this.transactionLoader = new TransactionLoader(httpTransport, jsonFactory);
     this.transactionProcessor = new TransactionProcessor();
+    this.reportCreator = new ReportCreator();
   }
 
   private void run(String pathToProps, Optional<String> sinceDateOpt) throws IOException {
@@ -43,6 +45,8 @@ public class MonzoTransactionReaderRunner {
         .addAutoTagAccounts(props.getAutoTagAccounts())
         .create();
     var processorResult = transactionProcessor.process(transactionList, clientProcessingDetails);
+    var report = reportCreator.create(processorResult);
+    System.out.print(report.produceReport());
     var debug = 1;
   }
 

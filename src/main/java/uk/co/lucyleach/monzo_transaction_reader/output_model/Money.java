@@ -26,9 +26,17 @@ public class Money {
     return currency;
   }
 
-  public Money plus(Money otherMoney) {
+  public Money add(Money otherMoney) {
     checkArgument(otherMoney.currency.equals(currency));
     return new Money(amountInPence + otherMoney.amountInPence, currency);
+  }
+
+  public boolean isPositive() {
+    return amountInPence > 0;
+  }
+
+  public boolean isNegative() {
+    return amountInPence < 0;
   }
 
   @Override
