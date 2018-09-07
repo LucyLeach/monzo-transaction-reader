@@ -1,5 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.output_model;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * User: Lucy
  * Date: 29/07/2018
@@ -20,5 +22,15 @@ public class Money {
 
   public String getCurrency() {
     return currency;
+  }
+
+  public Money plus(Money otherMoney) {
+    checkArgument(otherMoney.currency.equals(currency));
+    return new Money(amountInPence + otherMoney.amountInPence, currency);
+  }
+
+  @Override
+  public String toString() {
+    return amountInPence + " " + currency;
   }
 }
