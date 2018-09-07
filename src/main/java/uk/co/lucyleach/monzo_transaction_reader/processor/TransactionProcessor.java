@@ -39,26 +39,27 @@ public class TransactionProcessor {
     if(original.getAmount() == 0 || original.getNotes().contains(IGNORE_TAG)) {
       return createIgnoredResult(original);
     } else if(isSaleTransaction(original)) {
-      return processSaleTransaction(original);
+      return processSaleTransaction(original, clientDetails);
     } else if(isPotTransaction(original)) {
       return processPotTransaction(original, clientDetails);
     } else if(isTransferTransaction(original)) {
-      return processTransferTransaction(original);
+      return processTransferTransaction(original, clientDetails);
     } else {
       return createErrorResult(original, "Unimplemented transaction type");
     }
   }
 
-  private ProcessorResult processSaleTransaction(Transaction original) {
-    return processTaggedTransaction(original, TransactionProcessor::createSaleTransactionWithTag);
+  private ProcessorResult processSaleTransaction(Transaction original, ClientProcessingDetails clientDetails) {
+    return processTaggedTransaction(original, saleTransactionNoteGetter(clientDetails), TransactionProcessor::createSaleTransactionWithTag);
   }
 
-  private ProcessorResult processTransferTransaction(Transaction original) {
-    return processTaggedTransaction(original, TransactionProcessor::createTransferTransactionWithTag);
+  private ProcessorResult processTransferTransaction(Transaction original, ClientProcessingDetails clientDetails) {
+    return processTaggedTransaction(original, transferTransactionNoteGetter(clientDetails), TransactionProcessor::createTransferTransactionWithTag);
   }
 
-  private ProcessorResult processTaggedTransaction(Transaction original, Function<Transaction, Function<Map.Entry<String, Integer>, ProcessedTransaction>> tagToTransactionFunction) {
-    var notes = original.getNotes();
+  private ProcessorResult processTaggedTransaction(Transaction original, Function<Transaction, String> noteGetter,
+                                                   Function<Transaction, Function<Map.Entry<String, Integer>, ProcessedTransaction>> tagToTransactionFunction) {
+    var notes = noteGetter.apply(original);
     var amount = original.getAmount();
     Map<String, Integer> tagsAndAmounts;
     try {
@@ -98,6 +99,30 @@ public class TransactionProcessor {
 
   private static boolean isTransferTransaction(Transaction original) {
     return original.getCounterparty() != null && original.getCounterparty().isNonEmpty();
+  }
+
+  private static Function<Transaction, String> saleTransactionNoteGetter(ClientProcessingDetails clientDetails) {
+    //NB Does not override existing notes
+    return transaction -> {
+      var noOriginalNotes = transaction.getNotes() == null || transaction.getNotes().isEmpty();
+      if(noOriginalNotes && clientDetails.getAutoTagMerchants().containsKey(transaction.getMerchant().getName())) {
+        return clientDetails.getAutoTagMerchants().get(transaction.getMerchant().getName());
+      } else {
+        return transaction.getNotes();
+      }
+    };
+  }
+
+  private static Function<Transaction, String> transferTransactionNoteGetter(ClientProcessingDetails clientDetails) {
+    return transaction -> {
+      var accountId = transaction.getCounterparty().getAccountNumber() + "/" + transaction.getCounterparty().getSortCode();
+      //NB overrides existing notes
+      if(clientDetails.getAutoTagAccounts().containsKey(accountId)) {
+        return clientDetails.getAutoTagAccounts().get(accountId);
+      } else {
+        return transaction.getNotes();
+      }
+    };
   }
 
   private static Function<Map.Entry<String, Integer>, ProcessedTransaction> createSaleTransactionWithTag(Transaction original) {

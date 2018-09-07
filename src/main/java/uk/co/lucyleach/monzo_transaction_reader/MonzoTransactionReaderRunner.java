@@ -36,7 +36,12 @@ public class MonzoTransactionReaderRunner {
     var credential = credentialLoader.load(props.getClientId(), props.getClientSecret());
     var transactionList = transactionLoader.load(credential, props.getAccountId(), sinceDateOpt);
 
-    var clientProcessingDetails = new ClientProcessingDetails(props.getPotsToRecogniseIn(), props.getPotsToRecogniseOut(), props.getAutoTagMerchants(), props.getAutoTagAccounts());
+    var clientProcessingDetails = ClientProcessingDetails.builder()
+        .addPotsToRecogniseIn(props.getPotsToRecogniseIn())
+        .addPotsToRecogniseOut(props.getPotsToRecogniseOut())
+        .addAutoTagMerchants(props.getAutoTagMerchants())
+        .addAutoTagAccounts(props.getAutoTagAccounts())
+        .create();
     var processorResult = transactionProcessor.process(transactionList, clientProcessingDetails);
     var debug = 1;
   }

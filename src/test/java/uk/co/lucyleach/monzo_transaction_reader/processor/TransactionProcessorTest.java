@@ -39,7 +39,7 @@ public class TransactionProcessorTest {
 
   @Test
   public void testEmptyInput() {
-    var result = UNDER_TEST.process(new TransactionList(), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(), ClientProcessingDetails.builder().create());
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
@@ -50,7 +50,7 @@ public class TransactionProcessorTest {
   public void testSingleSaleTransaction() {
     var expectedResult = createSingleSaleTransaction();
 
-    var result = UNDER_TEST.process(new TransactionList(expectedResult.getOriginalTransaction()), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(expectedResult.getOriginalTransaction()), ClientProcessingDetails.builder().create());
 
     checkForNulls(result);
     checkSuccessfulResult(result.getSuccessfulResults(), expectedResult);
@@ -63,7 +63,7 @@ public class TransactionProcessorTest {
     var expectedResult1 = createSingleSaleTransaction(1);
     var expectedResult2 = createSingleSaleTransaction(2);
 
-    var result = UNDER_TEST.process(new TransactionList(expectedResult1.getA(), expectedResult2.getA()), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(expectedResult1.getA(), expectedResult2.getA()), ClientProcessingDetails.builder().create());
 
     checkForNulls(result);
     checkSuccessfulResult(result.getSuccessfulResults(), expectedResult1, expectedResult2);
@@ -76,7 +76,7 @@ public class TransactionProcessorTest {
     var tagsToAmounts = Map.of("Tag1", 350, "Tag2", 600, "Tag3", 210);
     var expectedSuccessfulResult = createSaleTransactions(1, tagsToAmounts);
 
-    var result = UNDER_TEST.process(new TransactionList(expectedSuccessfulResult.getOriginalTransaction()), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(expectedSuccessfulResult.getOriginalTransaction()), ClientProcessingDetails.builder().create());
 
     checkForNulls(result);
     checkSuccessfulResult(result.getSuccessfulResults(), expectedSuccessfulResult);
@@ -89,7 +89,7 @@ public class TransactionProcessorTest {
     var tagsToAmounts = Map.of("Tag1", 378, "Tag2", 890);
     var expectedSuccessfulResult = createSaleTransactions(1, tagsToAmounts, Optional.of(310));
 
-    var result = UNDER_TEST.process(new TransactionList(expectedSuccessfulResult.getOriginalTransaction()), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(expectedSuccessfulResult.getOriginalTransaction()), ClientProcessingDetails.builder().create());
 
     checkForNulls(result);
     checkSuccessfulResult(result.getSuccessfulResults(), expectedSuccessfulResult);
@@ -107,7 +107,7 @@ public class TransactionProcessorTest {
         originalTransaction.getCreated(), notesWithoutHashes, originalTransaction.getMerchant(), originalTransaction.getDescription(), emptyCounterparty());
     var expectedSuccessfulResultWoHashes = new InputAndOutputTransactions(inputWithoutHashes, expectedSuccessfulResult.getProcessedTransactions());
 
-    var result = UNDER_TEST.process(new TransactionList(inputWithoutHashes), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(inputWithoutHashes), ClientProcessingDetails.builder().create());
 
     checkForNulls(result);
     checkSuccessfulResult(result.getSuccessfulResults(), expectedSuccessfulResultWoHashes);
@@ -127,11 +127,49 @@ public class TransactionProcessorTest {
         createSimpleSaleTransaction("Amounts don't add up", "100 #FirstTag; 100 #SecondTag", -250)
     );
 
-    var result = UNDER_TEST.process(new TransactionList(Lists.newArrayList(inputSet)), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(Lists.newArrayList(inputSet)), ClientProcessingDetails.builder().create());
 
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkForUnsuccessfulResults(inputSet, result);
+    checkNoIgnoredTransactions(result);
+  }
+
+  @Test
+  public void testSaleTransactionDefaultTag() {
+    var merchantName = "Merchant Name";
+    var defaultTag = "DefaultTag";
+    var saleTransaction = new Transaction("No tag", -100, "GBP", "2018-02-01T08:00:00.0Z", "", new Merchant(merchantName), "Description", emptyCounterparty());
+    var expectedOutputTransaction = new SaleTransaction("No tag", ZonedDateTime.of(2018, 2, 1, 8, 0, 0, 0, ZoneId.of("UTC")),
+        new Money(-100, "GBP"), merchantName, defaultTag);
+    var clientDetails = ClientProcessingDetails.builder()
+        .addAutoTagMerchant(merchantName, "#" + defaultTag)
+        .create();
+
+    var result = UNDER_TEST.process(new TransactionList(saleTransaction), clientDetails);
+
+    checkForNulls(result);
+    checkSuccessfulResult(result.getSuccessfulResults(), new InputAndOutputTransactions(saleTransaction, expectedOutputTransaction));
+    checkNoUnsuccessfulResults(result);
+    checkNoIgnoredTransactions(result);
+  }
+
+  @Test
+  public void testSaleTransactionCantOverrideTagWithDefault() {
+    var merchantName = "Merchant Name";
+    var defaultTag = "DefaultTag";
+    var saleTransaction = new Transaction("Can't override tag", -100, "GBP", "2018-02-01T08:00:00.0Z", "#ExistingTag", new Merchant(merchantName), "Description", emptyCounterparty());
+    var expectedOutputTransaction = new SaleTransaction("Can't override tag", ZonedDateTime.of(2018, 2, 1, 8, 0, 0, 0, ZoneId.of("UTC")),
+        new Money(-100, "GBP"), merchantName, "ExistingTag");
+    var clientDetails = ClientProcessingDetails.builder()
+        .addAutoTagMerchant(merchantName, "#" + defaultTag)
+        .create();
+
+    var result = UNDER_TEST.process(new TransactionList(saleTransaction), clientDetails);
+
+    checkForNulls(result);
+    checkSuccessfulResult(result.getSuccessfulResults(), new InputAndOutputTransactions(saleTransaction, expectedOutputTransaction));
+    checkNoUnsuccessfulResults(result);
     checkNoIgnoredTransactions(result);
   }
 
@@ -141,7 +179,7 @@ public class TransactionProcessorTest {
     var potTransferIn = createPotTransaction(potId, "tag", true).getOriginalTransaction();
     var potTransferOut = createPotTransaction(potId, "tag", false).getOriginalTransaction();
 
-    var result = UNDER_TEST.process(new TransactionList(potTransferIn, potTransferOut), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(potTransferIn, potTransferOut), ClientProcessingDetails.builder().create());
 
     checkForNulls(result);
     checkNoSuccessfulResults(result);
@@ -155,7 +193,7 @@ public class TransactionProcessorTest {
     var potTransferInResult = createPotTransaction(potId, "MappedTag", true);
     var potTransferOut = createPotTransaction(potId, "tag", false).getOriginalTransaction();
 
-    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTag"), Map.of(), autoTagMerchants, autoTagAccounts);
+    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseIn(Map.of(potId, "MappedTag")).create();
 
     var result = UNDER_TEST.process(new TransactionList(potTransferInResult.getOriginalTransaction(), potTransferOut), clientDetails);
 
@@ -171,7 +209,7 @@ public class TransactionProcessorTest {
     var potTransferIn = createPotTransaction(potId, "tag", true).getOriginalTransaction();
     var potTransferOutResult = createPotTransaction(potId, "MappedTag", false);
 
-    var clientDetails = new ClientProcessingDetails(Map.of(), Map.of(potId, "MappedTag"), autoTagMerchants, autoTagAccounts);
+    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseOut(Map.of(potId, "MappedTag")).create();
 
     var result = UNDER_TEST.process(new TransactionList(potTransferOutResult.getOriginalTransaction(), potTransferIn), clientDetails);
 
@@ -187,7 +225,7 @@ public class TransactionProcessorTest {
     var potTransferInResult = createPotTransaction(potId, "MappedTagIn", true);
     var potTransferOutResult = createPotTransaction(potId, "MappedTagOut", false);
 
-    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTagIn"), Map.of(potId, "MappedTagOut"), autoTagMerchants, autoTagAccounts);
+    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseIn(Map.of(potId, "MappedTagIn")).addPotsToRecogniseOut(Map.of(potId, "MappedTagOut")).create();
 
     var result = UNDER_TEST.process(new TransactionList(potTransferOutResult.getOriginalTransaction(), potTransferInResult.getOriginalTransaction()), clientDetails);
 
@@ -205,7 +243,7 @@ public class TransactionProcessorTest {
     var potTransferInResult = createPotTransaction(potId, "MappedTagIn", true, 0);
     var potTransferOutResult = createPotTransaction(potId, "MappedTagOut", false, 0);
 
-    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTagIn"), Map.of(potId, "MappedTagOut"), autoTagMerchants, autoTagAccounts);
+    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseIn(Map.of(potId, "MappedTagIn")).addPotsToRecogniseOut(Map.of(potId, "MappedTagOut")).create();
 
     var result = UNDER_TEST.process(new TransactionList(saleTransaction, potTransferOutResult.getOriginalTransaction(), potTransferInResult.getOriginalTransaction()), clientDetails);
 
@@ -226,7 +264,7 @@ public class TransactionProcessorTest {
     var ignorePotOutTransaction = new Transaction(potId + " out", -5631, "GBP", dateString, IGNORE_TAG, null, potId, emptyCounterparty());
     var ignoreTransferIn = new Transaction("Transfer in with ignore", 7312, "GBP", dateString, IGNORE_TAG, null, "Description", new Counterparty(123, 456));
     var ignoreTransferOut = new Transaction("Transfer out with ignore", -7312, "GBP", dateString, IGNORE_TAG, null, "Description", new Counterparty(123, 456));
-    var clientDetails = new ClientProcessingDetails(Map.of(potId, "MappedTagIn"), Map.of(potId, "MappedTagOut"), autoTagMerchants, autoTagAccounts);
+    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseIn(Map.of(potId, "MappedTagIn")).addPotsToRecogniseOut(Map.of(potId, "MappedTagOut")).create();
 
     var result = UNDER_TEST.process(new TransactionList(justIgnoreTag, ignoreTagMiddle, ignorePotInTransaction, ignorePotOutTransaction, ignoreTransferIn, ignoreTransferOut), clientDetails);
 
@@ -244,7 +282,7 @@ public class TransactionProcessorTest {
     var transferOut = new Transaction("Unreadable tag - transfer out", -4320, "GBP", dateString, "Unreadable tag",
         null, "Description", new Counterparty(234, 789));
 
-    var result = UNDER_TEST.process(new TransactionList(transferIn, transferOut), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(transferIn, transferOut), ClientProcessingDetails.builder().create());
 
     checkForNulls(result);
     checkNoSuccessfulResults(result);
@@ -257,7 +295,7 @@ public class TransactionProcessorTest {
     var transferInResult = createTransferTransaction("Simple tag", Map.of("Tag1", 3.9), 390);
     var transferOutResult = createTransferTransaction("Simple tag", Map.of("Tag1", 32.7), -3270);
 
-    var result = UNDER_TEST.process(new TransactionList(transferInResult.getOriginalTransaction(), transferOutResult.getOriginalTransaction()), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(transferInResult.getOriginalTransaction(), transferOutResult.getOriginalTransaction()), ClientProcessingDetails.builder().create());
 
     checkForNulls(result);
     checkSuccessfulResult(result.getSuccessfulResults(), transferInResult, transferOutResult);
@@ -270,10 +308,48 @@ public class TransactionProcessorTest {
     var transferInResult = createTransferTransaction("Complex tag", Map.of("Tag1", 53.4, "Tag2", 67.29, "Tag3", 11.11), 13180);
     var transferOutResult = createTransferTransaction("Complex tag", Map.of("Tag1", 53.4, "Tag2", 67.29, "Tag3", 11.11), -13180);
 
-    var result = UNDER_TEST.process(new TransactionList(transferInResult.getOriginalTransaction(), transferOutResult.getOriginalTransaction()), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(transferInResult.getOriginalTransaction(), transferOutResult.getOriginalTransaction()), ClientProcessingDetails.builder().create());
 
     checkForNulls(result);
     checkSuccessfulResult(result.getSuccessfulResults(), transferInResult, transferOutResult);
+    checkNoUnsuccessfulResults(result);
+    checkNoIgnoredTransactions(result);
+  }
+
+  @Test
+  public void testTransferDefaultTag() {
+    var accountNumber = 124;
+    var sortCode = 876;
+    var defaultTag = "DefaultTag";
+    var clientDetails = ClientProcessingDetails.builder().addAutoTagAccount(accountNumber + "/" + sortCode, "#" + defaultTag).create();
+    var originalTransaction = new Transaction("No tag", 10000, "GBP", "2018-02-03T08:00:00.0Z", "", new Merchant(),
+        "Description", new Counterparty(accountNumber, sortCode));
+    var expectedTransaction = new TransferTransaction("No tag", ZonedDateTime.of(2018, 2, 3, 8, 0, 0, 0, ZoneId.of("UTC")),
+        new Money(10000, "GBP"), accountNumber + "/" + sortCode + " - Description", defaultTag);
+
+    var result = UNDER_TEST.process(new TransactionList(originalTransaction), clientDetails);
+
+    checkForNulls(result);
+    checkSuccessfulResult(result.getSuccessfulResults(), new InputAndOutputTransactions(originalTransaction, expectedTransaction));
+    checkNoUnsuccessfulResults(result);
+    checkNoIgnoredTransactions(result);
+  }
+
+  @Test
+  public void testTransferOverrideTagWithDefault() {
+    var accountNumber = 124;
+    var sortCode = 876;
+    var defaultTag = "DefaultTag";
+    var clientDetails = ClientProcessingDetails.builder().addAutoTagAccount(accountNumber + "/" + sortCode, "#" + defaultTag).create();
+    var originalTransaction = new Transaction("Tag to override", 10000, "GBP", "2018-02-03T08:00:00.0Z", "#TagToOverride", new Merchant(),
+        "Description", new Counterparty(accountNumber, sortCode));
+    var expectedTransaction = new TransferTransaction("Tag to override", ZonedDateTime.of(2018, 2, 3, 8, 0, 0, 0, ZoneId.of("UTC")),
+        new Money(10000, "GBP"), accountNumber + "/" + sortCode + " - Description", defaultTag);
+
+    var result = UNDER_TEST.process(new TransactionList(originalTransaction), clientDetails);
+
+    checkForNulls(result);
+    checkSuccessfulResult(result.getSuccessfulResults(), new InputAndOutputTransactions(originalTransaction, expectedTransaction));
     checkNoUnsuccessfulResults(result);
     checkNoIgnoredTransactions(result);
   }
@@ -283,7 +359,7 @@ public class TransactionProcessorTest {
     var dateString = "2018-01-03T08:00:00.0Z";
     var missingAllDetails = new Transaction("Bank transfer in", 420, "GBP", dateString, "Notes", null, "Description", emptyCounterparty());
 
-    var result = UNDER_TEST.process(new TransactionList(missingAllDetails), emptyClientDetails());
+    var result = UNDER_TEST.process(new TransactionList(missingAllDetails), ClientProcessingDetails.builder().create());
 
     checkForNulls(result);
     checkNoSuccessfulResults(result);
@@ -414,10 +490,6 @@ public class TransactionProcessorTest {
     assertEquals("Should have only " + expectedIgnoredTransactions.length + " ignored transactions", expectedIgnoredTransactions.length, ignoredTransactions.size());
   }
 
-  private static ClientProcessingDetails emptyClientDetails() {
-    return new ClientProcessingDetails(Map.of(), Map.of(), autoTagMerchants, autoTagAccounts);
-  }
-
   private static Counterparty emptyCounterparty() {
     return new Counterparty(null, null);
   }
@@ -425,6 +497,10 @@ public class TransactionProcessorTest {
   private static class InputAndOutputTransactions extends Pair<Transaction, Collection<? extends ProcessedTransaction>> {
     InputAndOutputTransactions(Transaction transaction, Collection<? extends ProcessedTransaction> processedTransactions) {
       super(transaction, processedTransactions);
+    }
+
+    InputAndOutputTransactions(Transaction transaction, ProcessedTransaction processedTransaction) {
+      super(transaction, Set.of(processedTransaction));
     }
 
     Transaction getOriginalTransaction() {
