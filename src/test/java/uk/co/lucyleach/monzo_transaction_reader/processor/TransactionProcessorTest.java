@@ -373,7 +373,7 @@ public class TransactionProcessorTest {
     var date = ZonedDateTime.of(2018, 1, 4, 8, 0, 0, 0, ZoneId.of("UTC"));
     var inOrOut = isIn ? "in" : "out";
     var transactionId = "Pot transfer " + inOrOut;
-    var inputTransaction = new Transaction(transactionId, amount, "GBP", dateString, "Notes", null, potId, emptyCounterparty());
+    var inputTransaction = new Transaction(transactionId, amount, "GBP", dateString, "Notes", new Merchant(), potId, emptyCounterparty());
     var processedTransaction = new TransferTransaction(transactionId, date, new Money(amount, "GBP"), potId, tag);
     return new InputAndOutputTransactions(inputTransaction, Set.of(processedTransaction));
   }
@@ -386,7 +386,7 @@ public class TransactionProcessorTest {
     var transactionId = testName + (isIn ? " in" : " out");
     var counterparty = new Counterparty(123, 456);
     var description = "Description";
-    var inputTransaction = new Transaction(transactionId, totalAmount, "GBP", dateString, notes, null, description, counterparty);
+    var inputTransaction = new Transaction(transactionId, totalAmount, "GBP", dateString, notes, new Merchant(), description, counterparty);
     var expectedWhere = counterparty.getAccountNumber() + "/" + counterparty.getSortCode() + " - " + description;
     var processedTransactions = tagsAndAmounts.entrySet().stream()
       .map(e -> new TransferTransaction(transactionId, date, new Money(isIn ? convertToPence(e.getValue()) : -1 * convertToPence(e.getValue()), "GBP"), expectedWhere, e.getKey()))

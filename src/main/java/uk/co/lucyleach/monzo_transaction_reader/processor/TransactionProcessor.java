@@ -86,7 +86,7 @@ public class TransactionProcessor {
   }
 
   private static boolean isSaleTransaction(Transaction original) {
-    return original.getMerchant() != null;
+    return original.getMerchant() != null && original.getMerchant().getName() != null;
   }
 
   private static boolean isPotTransaction(Transaction original) {

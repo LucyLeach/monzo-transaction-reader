@@ -8,6 +8,7 @@ import com.google.api.client.json.JsonObjectParser;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.TransactionList;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * User: Lucy
@@ -23,7 +24,7 @@ class TransactionLoader {
     this.jsonFactory = jsonFactory;
   }
 
-  TransactionList load(Credential credential, String accountId) throws IOException {
+  TransactionList load(Credential credential, String accountId, Optional<String> sinceDateOpt) throws IOException {
     var transactionUrl = "https://api.monzo.com/transactions";
     var requestFactory = httpTransport.createRequestFactory(request -> {
       credential.initialize(request);
@@ -32,6 +33,7 @@ class TransactionLoader {
     var transactionsUrlObject = new GenericUrl(transactionUrl);
     transactionsUrlObject.set("account_id", accountId);
     transactionsUrlObject.set("expand[]", "merchant");
+    sinceDateOpt.ifPresent(s -> transactionsUrlObject.set("since", s));
     var request = requestFactory.buildGetRequest(transactionsUrlObject);
     var response = request.execute();
     return response.parseAs(TransactionList.class);
