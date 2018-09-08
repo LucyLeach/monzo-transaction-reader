@@ -1,4 +1,4 @@
-package uk.co.lucyleach.monzo_transaction_reader;
+package uk.co.lucyleach.monzo_transaction_reader.report;
 
 import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
 
@@ -21,13 +21,15 @@ public class TransactionReport {
   private final Money totalAmountOut;
   private final List<TagLevelReport> tagReports;
   private final SortedMap<LocalDate, Money> expenditureByDate;
-  //TODO Reasons for ignored transactions
+  private final List<IgnoredTransactionsReport> ignoredTransactionsReports;
 
-  public TransactionReport(Money totalAmountIn, Money totalAmountOut, List<TagLevelReport> tagReports, SortedMap<LocalDate, Money> expenditureByDate) {
+  public TransactionReport(Money totalAmountIn, Money totalAmountOut, List<TagLevelReport> tagReports, SortedMap<LocalDate, Money> expenditureByDate,
+                           List<IgnoredTransactionsReport> ignoredTransactionsReports) {
     this.totalAmountIn = totalAmountIn;
     this.totalAmountOut = totalAmountOut;
     this.tagReports = List.copyOf(tagReports);
     this.expenditureByDate = new TreeMap<>(expenditureByDate);
+    this.ignoredTransactionsReports = ignoredTransactionsReports;
   }
 
   public String produceReport() {
@@ -35,7 +37,9 @@ public class TransactionReport {
         "Total amount out: " + totalAmountOut + lineSeparator() +
         "Tag level summary: ";
     var tagReportString = "\t" + tagReports.stream().map(TagLevelReport::toString).collect(joining(lineSeparator() + "\t"));
+    var middleString = "Ignored transactions by reason:";
+    var ignoredReportString = "\t" + ignoredTransactionsReports.stream().map(IgnoredTransactionsReport::toString).collect(joining(lineSeparator() + "\t"));
 
-    return Stream.of(startString, tagReportString).collect(joining(lineSeparator()));
+    return Stream.of(startString, tagReportString, middleString, ignoredReportString).collect(joining(lineSeparator()));
   }
 }

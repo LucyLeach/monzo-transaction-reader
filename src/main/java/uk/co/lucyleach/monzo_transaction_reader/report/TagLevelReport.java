@@ -1,4 +1,4 @@
-package uk.co.lucyleach.monzo_transaction_reader;
+package uk.co.lucyleach.monzo_transaction_reader.report;
 
 import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransaction;
@@ -33,6 +33,6 @@ public class TagLevelReport {
 
   @Override
   public String toString() {
-    return tag + ": " + contributingTransactions.size() + " transactions, totalling " + getTotalAmount().toString();
+    return tag + ": " + contributingTransactions.size() + " transactions, totalling " + getTotalAmount();
   }
 }
