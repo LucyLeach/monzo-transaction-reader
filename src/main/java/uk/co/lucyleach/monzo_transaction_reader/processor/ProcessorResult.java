@@ -16,11 +16,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ProcessorResult {
   private final Transaction originalTransaction;
   @Nullable
-  private final Set<? extends ProcessedTransaction> processedTransactions;
+  private final Set<ProcessedTransaction> processedTransactions;
   @Nullable
   private final String errorMessage;
 
-  private ProcessorResult(Transaction originalTransaction, @Nullable Set<? extends ProcessedTransaction> processedTransactions, @Nullable String errorMessage) {
+  private ProcessorResult(Transaction originalTransaction, @Nullable Set<ProcessedTransaction> processedTransactions, @Nullable String errorMessage) {
     this.originalTransaction = originalTransaction;
     this.processedTransactions = processedTransactions != null ? Set.copyOf(processedTransactions) : null;
     this.errorMessage = errorMessage;
@@ -43,7 +43,7 @@ public class ProcessorResult {
   }
 
   @Nullable
-  public Set<? extends ProcessedTransaction> getProcessedTransactions() {
+  public Set<ProcessedTransaction> getProcessedTransactions() {
     return processedTransactions;
   }
 
@@ -52,7 +52,7 @@ public class ProcessorResult {
     return errorMessage;
   }
 
-  public static ProcessorResult createProcessedResult(Transaction originalTransaction, Set<? extends ProcessedTransaction> processedTransactions) {
+  public static ProcessorResult createProcessedResult(Transaction originalTransaction, Set<ProcessedTransaction> processedTransactions) {
     checkNotNull(originalTransaction, processedTransactions);
     return new ProcessorResult(originalTransaction, processedTransactions, null);
   }

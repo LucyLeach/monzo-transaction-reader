@@ -37,6 +37,14 @@ public abstract class ProcessedTransaction {
     return tag;
   }
 
+  public boolean isPositive() {
+    return amount.isPositive();
+  }
+
+  public boolean isNegative() {
+    return amount.isNegative();
+  }
+
   @Override
   public boolean equals(Object o) {
     if(this == o) return true;

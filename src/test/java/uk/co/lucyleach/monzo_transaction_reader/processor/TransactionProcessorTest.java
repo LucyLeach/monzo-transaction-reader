@@ -390,12 +390,12 @@ public class TransactionProcessorTest {
     assertTrue("There should be no ignored transactions", result.getIgnoredTransactions().isEmpty());
   }
 
-  private static void checkSuccessfulResult(Map<Transaction, Set<? extends ProcessedTransaction>> outputResults, InputAndOutputTransactions... expectedResults) {
+  private static void checkSuccessfulResult(Map<Transaction, Set<ProcessedTransaction>> outputResults, InputAndOutputTransactions... expectedResults) {
     assertEquals("There should be " + expectedResults.length + " successful results", expectedResults.length, outputResults.size());
     Stream.of(expectedResults).forEach(expResult -> findAndCheckTransaction(expResult.getOriginalTransaction(), expResult.getProcessedTransactions(), outputResults));
   }
 
-  private static void findAndCheckTransaction(Transaction inputTransaction, Collection<? extends ProcessedTransaction> expectedOutputTransactions, Map<Transaction, Set<? extends ProcessedTransaction>> results) {
+  private static void findAndCheckTransaction(Transaction inputTransaction, Collection<ProcessedTransaction> expectedOutputTransactions, Map<Transaction, Set<ProcessedTransaction>> results) {
     assertTrue(inputTransaction.getId() + " should have an entry in the successful results", results.containsKey(inputTransaction));
     var processedResults = results.get(inputTransaction);
     assertEquals("Should have " + expectedOutputTransactions.size() + " processed transactions for input " + inputTransaction.getId(),
@@ -494,9 +494,9 @@ public class TransactionProcessorTest {
     return new Counterparty(null, null);
   }
 
-  private static class InputAndOutputTransactions extends Pair<Transaction, Collection<? extends ProcessedTransaction>> {
+  private static class InputAndOutputTransactions extends Pair<Transaction, Collection<ProcessedTransaction>> {
     InputAndOutputTransactions(Transaction transaction, Collection<? extends ProcessedTransaction> processedTransactions) {
-      super(transaction, processedTransactions);
+      super(transaction, Set.copyOf(processedTransactions));
     }
 
     InputAndOutputTransactions(Transaction transaction, ProcessedTransaction processedTransaction) {
@@ -507,7 +507,7 @@ public class TransactionProcessorTest {
       return getA();
     }
 
-    Collection<? extends ProcessedTransaction> getProcessedTransactions() {
+    Collection<ProcessedTransaction> getProcessedTransactions() {
       return getB();
     }
   }

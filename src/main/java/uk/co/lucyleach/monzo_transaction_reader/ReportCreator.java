@@ -6,6 +6,7 @@ import uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProcessorRe
 import uk.co.lucyleach.monzo_transaction_reader.utils.Pair;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Predicate;
@@ -30,10 +31,10 @@ public class ReportCreator {
         .sorted(comparing(TagLevelReport::getTag))
         .collect(toList());
 
-    var amountIn = sumTransactionsWithFilter(processedTransactions, t -> t.getAmount().isPositive());
-    var amountOut = sumTransactionsWithFilter(processedTransactions, t -> t.getAmount().isNegative());
+    var amountIn = sumTransactionsWithFilter(processedTransactions, ProcessedTransaction::isPositive);
+    var amountOut = sumTransactionsWithFilter(processedTransactions, ProcessedTransaction::isNegative);
 
-    var dateToNegativeTransactionMap = processedTransactions.stream().filter(t -> t.getAmount().isNegative()).collect(Collectors.groupingBy(t -> t.getDateTime().toLocalDate()));
+    var dateToNegativeTransactionMap = processedTransactions.stream().filter(ProcessedTransaction::isPositive).collect(Collectors.groupingBy(t -> t.getDateTime().toLocalDate()));
     var dateToExpenditureMap = dateToNegativeTransactionMap.entrySet().stream()
         .map(e -> new Pair<>(e.getKey(), sumTransactionsWithFilter(e.getValue(), i -> true)))
         .collect(toMap(Pair::getA, Pair::getB));
@@ -42,25 +43,25 @@ public class ReportCreator {
     return new TransactionReport(amountIn, amountOut, tagReports, sortedDateToExpenditureMap);
   }
 
-  private static TagLevelReport createTagLevelReport(Map.Entry<String, ? extends Collection<? extends ProcessedTransaction>> tagMapEntry) {
+  private static TagLevelReport createTagLevelReport(Map.Entry<String, List<ProcessedTransaction>> tagMapEntry) {
     var tag = tagMapEntry.getKey();
     var transactions = tagMapEntry.getValue();
 
     var sortedTransactions = transactions.stream().sorted(comparing(ProcessedTransaction::getDateTime)).collect(toList());
 
-    var amountIn = sumTransactionsWithFilter(transactions, t -> t.getAmount().isPositive());
-    var amountOut = sumTransactionsWithFilter(transactions, t -> t.getAmount().isNegative());
+    var amountIn = sumTransactionsWithFilter(transactions, ProcessedTransaction::isPositive);
+    var amountOut = sumTransactionsWithFilter(transactions, ProcessedTransaction::isNegative);
 
     return new TagLevelReport(tag, amountIn, amountOut, sortedTransactions);
   }
 
-  private static Money sumTransactionsWithFilter(Collection<? extends ProcessedTransaction> transactions, Predicate<ProcessedTransaction> predicate) {
+  private static Money sumTransactionsWithFilter(Collection<ProcessedTransaction> transactions, Predicate<ProcessedTransaction> predicate) {
     var currency = checkAndGetSingleCurrency(transactions);
     var amount = transactions.stream().filter(predicate).map(ProcessedTransaction::getAmount).mapToInt(Money::getAmountInPence).sum();
     return new Money(amount, currency);
   }
 
-  private static String checkAndGetSingleCurrency(Collection<? extends ProcessedTransaction> transactions) {
+  private static String checkAndGetSingleCurrency(Collection<ProcessedTransaction> transactions) {
     checkArgument(!transactions.isEmpty());
     var currency = transactions.iterator().next().getAmount().getCurrency();
     checkArgument(transactions.stream().allMatch(t -> currency.equals(t.getAmount().getCurrency())));

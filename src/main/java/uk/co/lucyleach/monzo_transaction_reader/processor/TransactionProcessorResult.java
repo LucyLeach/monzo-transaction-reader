@@ -22,7 +22,7 @@ public class TransactionProcessorResult {
     this.processorResults = Set.copyOf(results);
   }
 
-  public Map<Transaction, Set<? extends ProcessedTransaction>> getSuccessfulResults() {
+  public Map<Transaction, Set<ProcessedTransaction>> getSuccessfulResults() {
     return processorResults.stream()
         .filter(ProcessorResult::isProcessedResult)
         .collect(toMap(ProcessorResult::getOriginalTransaction, ProcessorResult::getProcessedTransactions));
