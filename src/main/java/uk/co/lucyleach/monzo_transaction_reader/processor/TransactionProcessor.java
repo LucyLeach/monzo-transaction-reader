@@ -82,7 +82,8 @@ public class TransactionProcessor {
     if(toIgnore) {
       return createIgnoredResult(original);
     } else {
-      var tag = isInTransaction ? clientDetails.getPotsToRecogniseIn().get(potId) : clientDetails.getPotsToRecogniseOut().get(potId);
+      var hashTag = isInTransaction ? clientDetails.getPotsToRecogniseIn().get(potId) : clientDetails.getPotsToRecogniseOut().get(potId);
+      var tag = hashTag.replace("#", "");
       var processedTransaction = new TransferTransaction(original.getId(), convertDateTime(original.getCreated()), new Money(original.getAmount(), original.getCurrency()),
           original.getDescription(), tag);
       return createProcessedResult(original, Set.of(processedTransaction));

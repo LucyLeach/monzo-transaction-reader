@@ -193,7 +193,7 @@ public class TransactionProcessorTest {
     var potTransferInResult = createPotTransaction(potId, "MappedTag", true);
     var potTransferOut = createPotTransaction(potId, "tag", false).getOriginalTransaction();
 
-    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseIn(Map.of(potId, "MappedTag")).create();
+    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseIn(Map.of(potId, "#MappedTag")).create();
 
     var result = UNDER_TEST.process(new TransactionList(potTransferInResult.getOriginalTransaction(), potTransferOut), clientDetails);
 
@@ -209,7 +209,7 @@ public class TransactionProcessorTest {
     var potTransferIn = createPotTransaction(potId, "tag", true).getOriginalTransaction();
     var potTransferOutResult = createPotTransaction(potId, "MappedTag", false);
 
-    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseOut(Map.of(potId, "MappedTag")).create();
+    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseOut(Map.of(potId, "#MappedTag")).create();
 
     var result = UNDER_TEST.process(new TransactionList(potTransferOutResult.getOriginalTransaction(), potTransferIn), clientDetails);
 
@@ -225,7 +225,7 @@ public class TransactionProcessorTest {
     var potTransferInResult = createPotTransaction(potId, "MappedTagIn", true);
     var potTransferOutResult = createPotTransaction(potId, "MappedTagOut", false);
 
-    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseIn(Map.of(potId, "MappedTagIn")).addPotsToRecogniseOut(Map.of(potId, "MappedTagOut")).create();
+    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseIn(Map.of(potId, "#MappedTagIn")).addPotsToRecogniseOut(Map.of(potId, "#MappedTagOut")).create();
 
     var result = UNDER_TEST.process(new TransactionList(potTransferOutResult.getOriginalTransaction(), potTransferInResult.getOriginalTransaction()), clientDetails);
 
