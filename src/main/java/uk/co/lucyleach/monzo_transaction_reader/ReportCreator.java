@@ -33,13 +33,13 @@ public class ReportCreator {
     var amountIn = sumTransactionsWithFilter(processedTransactions, t -> t.getAmount().isPositive());
     var amountOut = sumTransactionsWithFilter(processedTransactions, t -> t.getAmount().isNegative());
 
-    var dateToTransactionMap = processedTransactions.stream().collect(Collectors.groupingBy(t -> t.getDateTime().toLocalDate()));
-    var dateToAmountMap = dateToTransactionMap.entrySet().stream()
+    var dateToNegativeTransactionMap = processedTransactions.stream().filter(t -> t.getAmount().isNegative()).collect(Collectors.groupingBy(t -> t.getDateTime().toLocalDate()));
+    var dateToExpenditureMap = dateToNegativeTransactionMap.entrySet().stream()
         .map(e -> new Pair<>(e.getKey(), sumTransactionsWithFilter(e.getValue(), i -> true)))
         .collect(toMap(Pair::getA, Pair::getB));
-    var sortedDateToAmountMap = new TreeMap<>(dateToAmountMap);
+    var sortedDateToExpenditureMap = new TreeMap<>(dateToExpenditureMap);
 
-    return new TransactionReport(amountIn, amountOut, tagReports, sortedDateToAmountMap);
+    return new TransactionReport(amountIn, amountOut, tagReports, sortedDateToExpenditureMap);
   }
 
   private static TagLevelReport createTagLevelReport(Map.Entry<String, ? extends Collection<? extends ProcessedTransaction>> tagMapEntry) {

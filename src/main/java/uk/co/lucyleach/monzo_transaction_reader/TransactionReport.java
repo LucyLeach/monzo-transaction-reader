@@ -20,14 +20,14 @@ public class TransactionReport {
   private final Money totalAmountIn;
   private final Money totalAmountOut;
   private final List<TagLevelReport> tagReports;
-  private final SortedMap<LocalDate, Money> amountByDate;
+  private final SortedMap<LocalDate, Money> expenditureByDate;
   //TODO Reasons for ignored transactions
 
-  public TransactionReport(Money totalAmountIn, Money totalAmountOut, List<TagLevelReport> tagReports, SortedMap<LocalDate, Money> amountByDate) {
+  public TransactionReport(Money totalAmountIn, Money totalAmountOut, List<TagLevelReport> tagReports, SortedMap<LocalDate, Money> expenditureByDate) {
     this.totalAmountIn = totalAmountIn;
     this.totalAmountOut = totalAmountOut;
     this.tagReports = List.copyOf(tagReports);
-    this.amountByDate = new TreeMap<>(amountByDate);
+    this.expenditureByDate = new TreeMap<>(expenditureByDate);
   }
 
   public String produceReport() {
@@ -35,11 +35,7 @@ public class TransactionReport {
         "Total amount out: " + totalAmountOut + lineSeparator() +
         "Tag level summary: ";
     var tagReportString = "\t" + tagReports.stream().map(TagLevelReport::toString).collect(joining(lineSeparator() + "\t"));
-    var middleString = "Day by day summary:";
-    var dayReportString = amountByDate.entrySet().stream()
-        .map(e -> "\t" + e.getKey().toString() + ": " + e.getValue().toString())
-        .collect(joining(lineSeparator()));
 
-    return Stream.of(startString, tagReportString, middleString, dayReportString).collect(joining(lineSeparator()));
+    return Stream.of(startString, tagReportString).collect(joining(lineSeparator()));
   }
 }
