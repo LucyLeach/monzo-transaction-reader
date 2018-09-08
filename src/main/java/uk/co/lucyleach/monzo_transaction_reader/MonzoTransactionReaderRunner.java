@@ -43,7 +43,7 @@ public class MonzoTransactionReaderRunner {
         .addPotsToRecogniseOut(props.getPotsToRecogniseOut())
         .addAutoTagMerchants(props.getAutoTagMerchants())
         .addAutoTagAccounts(props.getAutoTagAccounts())
-        .create();
+        .build();
     var processorResult = transactionProcessor.process(transactionList, clientProcessingDetails);
     var report = reportCreator.create(processorResult);
     System.out.print(report.produceReport());

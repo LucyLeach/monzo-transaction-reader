@@ -25,7 +25,7 @@ import static uk.co.lucyleach.monzo_transaction_reader.processor.ProcessorResult
  */
 public class TransactionProcessor {
   final static String POT_PREFIX = "pot_";
-  final static String IGNORE_TAG = "#Ignore";
+  final static String IGNORE_TAG = "#ignore";
   private final TagParser tagParser = new TagParser();
 
   public TransactionProcessorResult process(TransactionList transactions, ClientProcessingDetails clientDetails) {
@@ -36,7 +36,7 @@ public class TransactionProcessor {
   }
 
   private ProcessorResult process(Transaction original, ClientProcessingDetails clientDetails) {
-    if(original.getAmount() == 0 || original.getNotes().contains(IGNORE_TAG)) {
+    if(original.getAmount() == 0 || original.getNotes().toLowerCase().contains(IGNORE_TAG)) {
       return createIgnoredResult(original);
     } else if(isSaleTransaction(original)) {
       return processSaleTransaction(original, clientDetails);
@@ -60,6 +60,10 @@ public class TransactionProcessor {
   private ProcessorResult processTaggedTransaction(Transaction original, Function<Transaction, String> noteGetter,
                                                    Function<Transaction, Function<Map.Entry<String, Integer>, ProcessedTransaction>> tagToTransactionFunction) {
     var notes = noteGetter.apply(original);
+    if(notes.toLowerCase().contains(IGNORE_TAG)) {
+      return ProcessorResult.createIgnoredResult(original);
+    }
+
     var amount = original.getAmount();
     Map<String, Integer> tagsAndAmounts;
     try {

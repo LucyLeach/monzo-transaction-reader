@@ -95,7 +95,7 @@ public class ClientProcessingDetails {
       return this;
     }
 
-    public ClientProcessingDetails create() {
+    public ClientProcessingDetails build() {
       return new ClientProcessingDetails(potsToRecogniseIn, potsToRecogniseOut, autoTagMerchants, autoTagAccounts);
     }
   }
