@@ -184,7 +184,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, potTransferIn, potTransferOut);
+    checkIgnoredTransactions(result, ReasonIgnored.UNCONFIGURED_POT, potTransferIn, potTransferOut);
   }
 
   @Test
@@ -200,7 +200,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkSuccessfulResult(result.getSuccessfulResults(), potTransferInResult);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, potTransferOut);
+    checkIgnoredTransactions(result, ReasonIgnored.UNCONFIGURED_POT, potTransferOut);
   }
 
   @Test
@@ -216,7 +216,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkSuccessfulResult(result.getSuccessfulResults(), potTransferOutResult);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, potTransferIn);
+    checkIgnoredTransactions(result, ReasonIgnored.UNCONFIGURED_POT, potTransferIn);
   }
 
   @Test
@@ -250,7 +250,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, saleTransaction, potTransferInResult.getOriginalTransaction(), potTransferOutResult.getOriginalTransaction());
+    checkIgnoredTransactions(result, ReasonIgnored.ZERO_TRANSACTION, saleTransaction, potTransferInResult.getOriginalTransaction(), potTransferOutResult.getOriginalTransaction());
   }
 
   @Test
@@ -272,7 +272,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, justIgnoreTag, ignoreTagMiddle, ignoreTagUpperCase, ignorePotInTransaction, ignorePotOutTransaction, ignoreTransferIn, ignoreTransferOut);
+    checkIgnoredTransactions(result, ReasonIgnored.IGNORE_TAG, justIgnoreTag, ignoreTagMiddle, ignoreTagUpperCase, ignorePotInTransaction, ignorePotOutTransaction, ignoreTransferIn, ignoreTransferOut);
   }
 
   @Test
@@ -286,7 +286,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, saleTransaction, transferTransaction);
+    checkIgnoredTransactions(result, ReasonIgnored.IGNORE_TAG, saleTransaction, transferTransaction);
   }
 
   @Test
@@ -499,9 +499,12 @@ public class TransactionProcessorTest {
     assertNotNull("Should return non null ignored transactions", result.getIgnoredTransactions());
   }
 
-  private static void checkIgnoredTransactions(TransactionProcessorResult result, Transaction... expectedIgnoredTransactions) {
+  private static void checkIgnoredTransactions(TransactionProcessorResult result, ReasonIgnored expectedReasonIgnored, Transaction... expectedIgnoredTransactions) {
     var ignoredTransactions = result.getIgnoredTransactions();
-    Stream.of(expectedIgnoredTransactions).forEach(t -> assertTrue("Should have ignored result for " + t.getId(), ignoredTransactions.contains(t)));
+    Stream.of(expectedIgnoredTransactions).forEach(t -> {
+      assertTrue("Should have ignored result for " + t.getId(), ignoredTransactions.containsKey(t));
+      assertEquals("Should have correct reason ignored for " + t.getId(), expectedReasonIgnored, ignoredTransactions.get(t));
+    });
     assertEquals("Should have only " + expectedIgnoredTransactions.length + " ignored transactions", expectedIgnoredTransactions.length, ignoredTransactions.size());
   }
 

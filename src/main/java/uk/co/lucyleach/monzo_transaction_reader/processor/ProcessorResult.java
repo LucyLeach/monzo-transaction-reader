@@ -19,11 +19,14 @@ public class ProcessorResult {
   private final Set<ProcessedTransaction> processedTransactions;
   @Nullable
   private final String errorMessage;
+  @Nullable
+  private final ReasonIgnored reasonIgnored;
 
-  private ProcessorResult(Transaction originalTransaction, @Nullable Set<ProcessedTransaction> processedTransactions, @Nullable String errorMessage) {
+  private ProcessorResult(Transaction originalTransaction, @Nullable Set<ProcessedTransaction> processedTransactions, @Nullable String errorMessage, @Nullable ReasonIgnored reasonIgnored) {
     this.originalTransaction = originalTransaction;
     this.processedTransactions = processedTransactions != null ? Set.copyOf(processedTransactions) : null;
     this.errorMessage = errorMessage;
+    this.reasonIgnored = reasonIgnored;
   }
 
   public boolean isProcessedResult() {
@@ -35,7 +38,7 @@ public class ProcessorResult {
   }
 
   public boolean isIgnoredResult() {
-    return processedTransactions == null && errorMessage == null;
+    return reasonIgnored != null;
   }
 
   public Transaction getOriginalTransaction() {
@@ -52,18 +55,23 @@ public class ProcessorResult {
     return errorMessage;
   }
 
+  @Nullable
+  public ReasonIgnored getReasonIgnored() {
+    return reasonIgnored;
+  }
+
   public static ProcessorResult createProcessedResult(Transaction originalTransaction, Set<ProcessedTransaction> processedTransactions) {
     checkNotNull(originalTransaction, processedTransactions);
-    return new ProcessorResult(originalTransaction, processedTransactions, null);
+    return new ProcessorResult(originalTransaction, processedTransactions, null, null);
   }
 
   public static ProcessorResult createErrorResult(Transaction originalTransaction, String errorMessage) {
     checkNotNull(originalTransaction, errorMessage);
-    return new ProcessorResult(originalTransaction, null, errorMessage);
+    return new ProcessorResult(originalTransaction, null, errorMessage, null);
   }
 
-  public static ProcessorResult createIgnoredResult(Transaction originalTransaction) {
-    checkNotNull(originalTransaction);
-    return new ProcessorResult(originalTransaction, null, null);
+  public static ProcessorResult createIgnoredResult(Transaction originalTransaction, ReasonIgnored reasonIgnored) {
+    checkNotNull(originalTransaction, reasonIgnored);
+    return new ProcessorResult(originalTransaction, null, null, reasonIgnored);
   }
 }

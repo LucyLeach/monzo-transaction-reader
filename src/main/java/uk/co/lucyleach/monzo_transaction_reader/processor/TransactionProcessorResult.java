@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * User: Lucy
@@ -34,10 +33,9 @@ public class TransactionProcessorResult {
         .collect(toMap(ProcessorResult::getOriginalTransaction, ProcessorResult::getErrorMessage));
   }
 
-  public Collection<Transaction> getIgnoredTransactions() {
+  public Map<Transaction, ReasonIgnored> getIgnoredTransactions() {
     return processorResults.stream()
         .filter(ProcessorResult::isIgnoredResult)
-        .map(ProcessorResult::getOriginalTransaction)
-        .collect(toSet());
+        .collect(toMap(ProcessorResult::getOriginalTransaction, ProcessorResult::getReasonIgnored));
   }
 }
