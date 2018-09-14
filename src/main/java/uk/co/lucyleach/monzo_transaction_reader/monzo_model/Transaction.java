@@ -78,4 +78,18 @@ public class Transaction {
   public Counterparty getCounterparty() {
     return counterparty;
   }
+
+  @Override
+  public String toString() {
+    return "Transaction{" +
+        "id='" + id + '\'' +
+        ", amount=" + amount +
+        ", currency='" + currency + '\'' +
+        ", created='" + created + '\'' +
+        ", notes='" + notes + '\'' +
+        ", merchant=" + merchant +
+        ", description='" + description + '\'' +
+        ", counterparty=" + counterparty +
+        '}';
+  }
 }

@@ -415,7 +415,13 @@ public class TransactionProcessorTest {
     var processedResults = results.get(inputTransaction);
     assertEquals("Should have " + expectedOutputTransactions.size() + " processed transactions for input " + inputTransaction.getId(),
         expectedOutputTransactions.size(), processedResults.size());
-    assertTrue("Difference in processed transactions for input " + inputTransaction.getId(), processedResults.containsAll(expectedOutputTransactions));
+    if(!processedResults.containsAll(expectedOutputTransactions)) {
+      System.out.println("Expected transactions:");
+      expectedOutputTransactions.forEach(System.out::println);
+      System.out.println("Output transactions:");
+      processedResults.forEach(System.out::println);
+      fail("Difference in expected transactions and output for " + inputTransaction.getId() + ", see console");
+    }
   }
 
   private static InputAndOutputTransactions createSingleSaleTransaction() {
@@ -435,9 +441,8 @@ public class TransactionProcessorTest {
     var merchant = new Merchant(merchantName);
     var id = "BUY_TRANSACTION_ID" + seed;
     var currency = "GBP";
-    var nanosNow = ZonedDateTime.now().getNano();
-    var dateString = "2018-01-02T07:52:54." + nanosNow + "Z";
-    var date = ZonedDateTime.of(2018, 1, 2, 7, 52, 54, nanosNow, ZoneId.of("UTC"));
+    var dateString = "2018-01-02T07:52:54.0Z";
+    var date = ZonedDateTime.of(2018, 1, 2, 7, 52, 54, 0, ZoneId.of("UTC"));
     var notes = tagsAndAmounts.keySet().stream()
         .map(tag -> "" + tagsAndAmounts.get(tag) + " #" + tag)
         .collect(Collectors.joining("; "));

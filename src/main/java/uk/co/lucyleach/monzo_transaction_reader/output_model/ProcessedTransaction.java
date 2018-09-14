@@ -45,6 +45,13 @@ public abstract class ProcessedTransaction {
     return amount.isNegative();
   }
 
+  public String toStringOnFields() {
+    return "monzoId='" + monzoId +
+        ", dateTime=" + dateTime +
+        ", amount=" + amount +
+        ", tag='" + tag;
+  }
+
   @Override
   public boolean equals(Object o) {
     if(this == o) return true;

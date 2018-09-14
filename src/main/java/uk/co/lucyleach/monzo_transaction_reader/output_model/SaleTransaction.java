@@ -21,6 +21,13 @@ public class SaleTransaction extends ProcessedTransaction {
   }
 
   @Override
+  public String toString() {
+    return "SaleTransaction{" + toStringOnFields() +
+        ", " + "merchantName='" + merchantName + '\'' +
+        '}';
+  }
+
+  @Override
   public boolean equals(Object o) {
     if(this == o) return true;
     if(o == null || getClass() != o.getClass()) return false;
@@ -33,4 +40,6 @@ public class SaleTransaction extends ProcessedTransaction {
   public int hashCode() {
     return Objects.hash(super.hashCode(), merchantName);
   }
+
+
 }

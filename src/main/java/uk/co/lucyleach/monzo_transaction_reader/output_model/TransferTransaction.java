@@ -21,6 +21,13 @@ public class TransferTransaction extends ProcessedTransaction {
   }
 
   @Override
+  public String toString() {
+    return "TransferTransaction{" + toStringOnFields() +
+        ", " + "whereTransferredTo='" + whereTransferredTo + '\'' +
+        '}';
+  }
+
+  @Override
   public boolean equals(Object o) {
     if(this == o) return true;
     if(o == null || getClass() != o.getClass()) return false;
