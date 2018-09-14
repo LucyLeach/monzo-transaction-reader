@@ -16,7 +16,7 @@ public class TransferTransaction extends ProcessedTransaction {
     this.whereTransferredTo = whereTransferredTo;
   }
 
-  public String getWhereTransferredTo() {
+  public String getWhere() {
     return whereTransferredTo;
   }
 

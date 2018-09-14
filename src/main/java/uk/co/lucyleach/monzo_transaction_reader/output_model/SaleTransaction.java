@@ -16,7 +16,7 @@ public class SaleTransaction extends ProcessedTransaction {
     this.merchantName = merchantName;
   }
 
-  public String getMerchantName() {
+  public String getWhere() {
     return merchantName;
   }
 

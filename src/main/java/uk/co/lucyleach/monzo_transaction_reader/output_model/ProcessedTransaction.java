@@ -45,6 +45,8 @@ public abstract class ProcessedTransaction {
     return amount.isNegative();
   }
 
+  public abstract String getWhere();
+
   public String toStringOnFields() {
     return "monzoId='" + monzoId +
         ", dateTime=" + dateTime +

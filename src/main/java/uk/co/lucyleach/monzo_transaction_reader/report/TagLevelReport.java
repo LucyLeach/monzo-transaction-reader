@@ -43,6 +43,10 @@ public class TagLevelReport {
     return contributingTransactions.size();
   }
 
+  public List<ProcessedTransaction> getContributingTransactions() {
+    return contributingTransactions;
+  }
+
   @Override
   public String toString() {
     return tag + ": " + contributingTransactions.size() + " transactions, totalling " + getTotalAmount();

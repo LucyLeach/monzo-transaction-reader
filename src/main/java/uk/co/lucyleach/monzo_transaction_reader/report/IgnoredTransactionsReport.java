@@ -21,7 +21,7 @@ public class IgnoredTransactionsReport {
     this.reasonIgnored = reasonIgnored;
     this.totalAmountIn = totalAmountIn;
     this.totalAmountOut = totalAmountOut;
-    this.ignoredTransactions = ignoredTransactions;
+    this.ignoredTransactions = List.copyOf(ignoredTransactions);
   }
 
   public Money getTotalAmount() {
@@ -30,6 +30,10 @@ public class IgnoredTransactionsReport {
 
   public ReasonIgnored getReasonIgnored() {
     return reasonIgnored;
+  }
+
+  public List<Transaction> getIgnoredTransactions() {
+    return ignoredTransactions;
   }
 
   @Override
