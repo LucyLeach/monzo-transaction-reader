@@ -31,6 +31,18 @@ public class TagLevelReport {
     return tag;
   }
 
+  public Money getTotalAmountIn() {
+    return totalAmountIn;
+  }
+
+  public Money getTotalAmountOut() {
+    return totalAmountOut;
+  }
+
+  public int getNumTransactions() {
+    return contributingTransactions.size();
+  }
+
   @Override
   public String toString() {
     return tag + ": " + contributingTransactions.size() + " transactions, totalling " + getTotalAmount();

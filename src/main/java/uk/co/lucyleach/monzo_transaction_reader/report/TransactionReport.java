@@ -32,6 +32,26 @@ public class TransactionReport {
     this.ignoredTransactionsReports = ignoredTransactionsReports;
   }
 
+  public Money getTotalAmountIn() {
+    return totalAmountIn;
+  }
+
+  public Money getTotalAmountOut() {
+    return totalAmountOut;
+  }
+
+  public List<TagLevelReport> getTagReports() {
+    return tagReports;
+  }
+
+  public SortedMap<LocalDate, Money> getExpenditureByDate() {
+    return expenditureByDate;
+  }
+
+  public List<IgnoredTransactionsReport> getIgnoredTransactionsReports() {
+    return ignoredTransactionsReports;
+  }
+
   public String produceReport() {
     var startString = "Total amount in: " + totalAmountIn + lineSeparator() +
         "Total amount out: " + totalAmountOut + lineSeparator() +

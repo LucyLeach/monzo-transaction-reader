@@ -1,5 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.output_model;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -20,6 +22,10 @@ public class Money {
 
   public int getAmountInPence() {
     return amountInPence;
+  }
+
+  public BigDecimal getAmountInPounds() {
+    return new BigDecimal(amountInPence).divide(new BigDecimal(100), 2, RoundingMode.HALF_UP);
   }
 
   public String getCurrency() {
