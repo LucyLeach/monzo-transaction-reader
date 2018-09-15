@@ -37,4 +37,12 @@ public class Counterparty {
   public boolean isNonEmpty() {
     return accountNumber != null && sortCode != null;
   }
+
+  @Override
+  public String toString() {
+    return "Counterparty{" +
+        "accountNumber=" + accountNumber +
+        ", sortCode=" + sortCode +
+        '}';
+  }
 }
