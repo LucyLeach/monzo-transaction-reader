@@ -128,7 +128,7 @@ public class TransactionProcessor {
 
   private static Function<Transaction, String> transferTransactionNoteGetter(ClientProcessingDetails clientDetails) {
     return transaction -> {
-      var accountId = transaction.getCounterparty().getAccountNumber() + "/" + transaction.getCounterparty().getSortCode();
+      var accountId = transaction.getCounterparty().getAccountId();
       //NB overrides existing notes
       if(clientDetails.getAutoTagAccounts().containsKey(accountId)) {
         return clientDetails.getAutoTagAccounts().get(accountId);
@@ -153,6 +153,6 @@ public class TransactionProcessor {
   }
 
   private static String createWhereFromString(String description, Counterparty counterparty) {
-    return counterparty.getAccountNumber() + "/" + counterparty.getSortCode() + " - " + description;
+    return counterparty.getAccountId() + " - " + description;
   }
 }

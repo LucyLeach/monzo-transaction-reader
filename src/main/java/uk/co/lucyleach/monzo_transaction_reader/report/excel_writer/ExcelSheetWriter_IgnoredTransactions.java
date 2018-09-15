@@ -21,7 +21,7 @@ public class ExcelSheetWriter_IgnoredTransactions implements ExcelSheetWriter<Ig
 
   @Override
   public String[] getTitles() {
-    return new String[]{"Reason", "Transaction"};
+    return new String[]{"Reason", "Transaction ID", "Amount", "Currency", "Created", "Notes", "Description", "Merchant", "Counterparty"};
   }
 
   @Override
@@ -40,7 +40,18 @@ public class ExcelSheetWriter_IgnoredTransactions implements ExcelSheetWriter<Ig
         var row = sheet.createRow(firstTagRow + 1 + i);
         var transaction = allTransactions.get(i);
         row.createCell(0);
-        row.createCell(1).setCellValue(transaction.toString());
+        row.createCell(1).setCellValue(transaction.getId());
+        row.createCell(2).setCellValue(transaction.getAmount());
+        row.createCell(3).setCellValue(transaction.getCurrency());
+        row.createCell(4).setCellValue(transaction.getCreated());
+        row.createCell(5).setCellValue(transaction.getNotes());
+        row.createCell(6).setCellValue(transaction.getDescription());
+        if(transaction.getMerchant() != null && transaction.getMerchant().getName() != null) {
+          row.createCell(7).setCellValue(transaction.getMerchant().getName());
+        }
+        if(transaction.getCounterparty() != null && transaction.getCounterparty().isNonEmpty()) {
+          row.createCell(8).setCellValue(transaction.getCounterparty().getAccountId());
+        }
       });
     };
   }

@@ -38,6 +38,10 @@ public class Counterparty {
     return accountNumber != null && sortCode != null;
   }
 
+  public String getAccountId() {
+    return isNonEmpty() ? accountNumber + "/" + sortCode : "no account";
+  }
+
   @Override
   public String toString() {
     return "Counterparty{" +

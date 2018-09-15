@@ -486,7 +486,7 @@ public class TransactionProcessorTest {
     var counterparty = new Counterparty(123, 456);
     var description = "Description";
     var inputTransaction = new Transaction(transactionId, totalAmount, "GBP", dateString, notes, new Merchant(), description, counterparty);
-    var expectedWhere = counterparty.getAccountNumber() + "/" + counterparty.getSortCode() + " - " + description;
+    var expectedWhere = counterparty.getAccountId() + " - " + description;
     var processedTransactions = tagsAndAmounts.entrySet().stream()
         .map(e -> new TransferTransaction(transactionId, date, new Money(isIn ? convertToPence(e.getValue()) : -1 * convertToPence(e.getValue()), "GBP"), expectedWhere, e.getKey()))
         .collect(toSet());
