@@ -1,5 +1,6 @@
 package uk.co.lucyleach.monzo_transaction_reader.report.excel_writer;
 
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
 import uk.co.lucyleach.monzo_transaction_reader.report.TagLevelReport;
 import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport;
@@ -15,6 +16,11 @@ import java.util.stream.IntStream;
  * Time: 21:30
  */
 public class ExcelSheetWriter_DetailedTagReport implements ExcelSheetWriter<TagLevelReport> {
+  private final CellStyle dateStyle;
+
+  public ExcelSheetWriter_DetailedTagReport(CellStyle dateStyle) {
+    this.dateStyle = dateStyle;
+  }
 
   @Override
   public String getSheetName() {
@@ -43,7 +49,11 @@ public class ExcelSheetWriter_DetailedTagReport implements ExcelSheetWriter<TagL
         var transaction = allTransactions.get(i);
         row.createCell(0);
         row.createCell(1).setCellValue(transaction.getMonzoId());
-        row.createCell(2).setCellValue(Date.from(transaction.getDateTime().toInstant()));
+
+        var dateCell = row.createCell(2);
+        dateCell.setCellValue(Date.from(transaction.getDateTime().toInstant()));
+        dateCell.setCellStyle(dateStyle);
+
         row.createCell(3).setCellValue(transaction.getAmount().getAmountInPounds().doubleValue());
         row.createCell(4).setCellValue(transaction.getWhere());
       });

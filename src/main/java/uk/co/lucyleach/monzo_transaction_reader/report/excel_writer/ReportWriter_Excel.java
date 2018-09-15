@@ -28,10 +28,11 @@ public class ReportWriter_Excel {
 
   public void write(TransactionReport report) throws IOException {
     Workbook workbook = new XSSFWorkbook();
+    var dateStyle = getDateStyle(workbook);
 
     createSheet(report, workbook, new ExcelSheetWriter_TagReport());
-    createSheet(report, workbook, new ExcelSheetWriter_DetailedTagReport());
-    createSheet(report, workbook, new ExcelSheetWriter_ByDate());
+    createSheet(report, workbook, new ExcelSheetWriter_DetailedTagReport(dateStyle));
+    createSheet(report, workbook, new ExcelSheetWriter_ByDate(dateStyle));
     createSheet(report, workbook, new ExcelSheetWriter_IgnoredTransactions());
 
     autoSizeAllColumnsOnAllSheets(workbook);
@@ -64,6 +65,13 @@ public class ReportWriter_Excel {
     titleFont.setBold(true);
     titleStyle.setFont(titleFont);
     return titleStyle;
+  }
+
+  private static CellStyle getDateStyle(Workbook workbook) {
+    var cellStyle = workbook.createCellStyle();
+    var creationHelper = workbook.getCreationHelper();
+    cellStyle.setDataFormat(creationHelper.createDataFormat().getFormat("dd-mmm-yy"));
+    return cellStyle;
   }
 
   private static void autoSizeAllColumnsOnAllSheets(Workbook workbook) {
