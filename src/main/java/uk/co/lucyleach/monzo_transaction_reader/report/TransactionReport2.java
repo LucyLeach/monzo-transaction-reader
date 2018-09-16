@@ -1,6 +1,9 @@
 package uk.co.lucyleach.monzo_transaction_reader.report;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * User: Lucy
@@ -22,5 +25,9 @@ public class TransactionReport2 {
 
   public List<IgnoredTransactionsReport> getIgnoredTransactionsReports() {
     return ignoredTransactionsReports;
+  }
+
+  public Map<String, SplitTransactionReport> getSplitReportsByLabel() {
+    return splitReports.stream().collect(Collectors.toMap(r -> Integer.toString(r.hashCode()).substring(0,5), r -> r, (r1,r2) -> r2, LinkedHashMap::new));
   }
 }

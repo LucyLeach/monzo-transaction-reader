@@ -1,9 +1,10 @@
 package uk.co.lucyleach.monzo_transaction_reader.report.excel_writer;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport;
+import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport2;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -12,11 +13,9 @@ import java.util.function.Consumer;
  * Time: 21:19
  */
 public interface ExcelSheetWriter<R> {
-  String getSheetName();
+  Map<String, List<R>> getObjectsToWritePerSheet(TransactionReport2 report);
 
   String[] getTitles();
-
-  List<R> getObjects(TransactionReport report);
 
   Consumer<R> objectWriter(Sheet sheet);
 }

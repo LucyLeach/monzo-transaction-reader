@@ -2,9 +2,10 @@ package uk.co.lucyleach.monzo_transaction_reader.report.excel_writer;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import uk.co.lucyleach.monzo_transaction_reader.report.IgnoredTransactionsReport;
-import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport;
+import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport2;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
@@ -15,18 +16,13 @@ import java.util.stream.IntStream;
  */
 public class ExcelSheetWriter_IgnoredTransactions implements ExcelSheetWriter<IgnoredTransactionsReport> {
   @Override
-  public String getSheetName() {
-    return "Ignored Transactions";
+  public Map<String, List<IgnoredTransactionsReport>> getObjectsToWritePerSheet(TransactionReport2 report) {
+    return Map.of("Ignored Transactions", report.getIgnoredTransactionsReports());
   }
 
   @Override
   public String[] getTitles() {
     return new String[]{"Reason", "Transaction ID", "Amount", "Currency", "Created", "Notes", "Description", "Merchant", "Counterparty"};
-  }
-
-  @Override
-  public List<IgnoredTransactionsReport> getObjects(TransactionReport report) {
-    return report.getIgnoredTransactionsReports();
   }
 
   @Override

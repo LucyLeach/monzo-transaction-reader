@@ -4,7 +4,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport;
+import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport2;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,14 +26,14 @@ public class ReportWriter_Excel {
     this.outputDir = outputDir;
   }
 
-  public void write(TransactionReport report) throws IOException {
+  public void write(TransactionReport2 report) throws IOException {
     Workbook workbook = new XSSFWorkbook();
     var dateStyle = getDateStyle(workbook);
 
-    createSheet(report, workbook, new ExcelSheetWriter_TagReport());
-    createSheet(report, workbook, new ExcelSheetWriter_DetailedTagReport(dateStyle));
-    createSheet(report, workbook, new ExcelSheetWriter_ByDate(dateStyle));
-    createSheet(report, workbook, new ExcelSheetWriter_IgnoredTransactions());
+    createSheets(report, workbook, new ExcelSheetWriter_TagReport());
+    createSheets(report, workbook, new ExcelSheetWriter_DetailedTagReport(dateStyle));
+    createSheets(report, workbook, new ExcelSheetWriter_ByDate(dateStyle));
+    createSheets(report, workbook, new ExcelSheetWriter_IgnoredTransactions());
 
     autoSizeAllColumnsOnAllSheets(workbook);
 
@@ -42,10 +42,12 @@ public class ReportWriter_Excel {
     }
   }
 
-  private static <R> void createSheet(TransactionReport report, Workbook workbook, ExcelSheetWriter<R> writer) {
-    var sheet = workbook.createSheet(writer.getSheetName());
-    createTitleCells(getTitleStyle(workbook), sheet, writer::getTitles);
-    writer.getObjects(report).stream().forEachOrdered(writer.objectWriter(sheet));
+  private static <R> void createSheets(TransactionReport2 report, Workbook workbook, ExcelSheetWriter<R> writer) {
+    writer.getObjectsToWritePerSheet(report).entrySet().stream().forEachOrdered(e -> {
+      var sheet = workbook.createSheet(e.getKey());
+      createTitleCells(getTitleStyle(workbook), sheet, writer::getTitles);
+      e.getValue().stream().forEachOrdered(writer.objectWriter(sheet));
+    });
   }
 
   private static void createTitleCells(CellStyle titleStyle, Sheet sheet, Supplier<String[]> titles) {
