@@ -4,7 +4,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport2;
+import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class ReportWriter_Excel {
     this.outputDir = outputDir;
   }
 
-  public void write(TransactionReport2 report) throws IOException {
+  public void write(TransactionReport report) throws IOException {
     Workbook workbook = new XSSFWorkbook();
     var dateStyle = getDateStyle(workbook);
 
@@ -42,7 +42,7 @@ public class ReportWriter_Excel {
     }
   }
 
-  private static <R> void createSheets(TransactionReport2 report, Workbook workbook, ExcelSheetWriter<R> writer) {
+  private static <R> void createSheets(TransactionReport report, Workbook workbook, ExcelSheetWriter<R> writer) {
     writer.getObjectsToWritePerSheet(report).entrySet().stream().forEachOrdered(e -> {
       var sheet = workbook.createSheet(e.getKey());
       createTitleCells(getTitleStyle(workbook), sheet, writer::getTitles);

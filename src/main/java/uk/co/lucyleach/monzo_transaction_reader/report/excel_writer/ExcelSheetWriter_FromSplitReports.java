@@ -1,7 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.report.excel_writer;
 
 import uk.co.lucyleach.monzo_transaction_reader.report.SplitTransactionReport;
-import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport2;
+import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,7 +16,7 @@ import static java.util.stream.Collectors.toMap;
  */
 public abstract class ExcelSheetWriter_FromSplitReports<R> implements ExcelSheetWriter<R> {
   @Override
-  public Map<String, List<R>> getObjectsToWritePerSheet(TransactionReport2 report) {
+  public Map<String, List<R>> getObjectsToWritePerSheet(TransactionReport report) {
     return report.getSplitReportsByLabel().entrySet().stream()
         .collect(toMap(e -> getSheetName() + "_" + e.getKey(), e -> getObjectsFromSplitReport(e.getValue()), (r1,r2) -> r2, LinkedHashMap::new));
   }

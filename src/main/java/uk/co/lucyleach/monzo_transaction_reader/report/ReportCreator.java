@@ -25,19 +25,9 @@ import static java.util.stream.Collectors.toSet;
  */
 public class ReportCreator {
   public TransactionReport create(TransactionProcessorResult result) {
-    var processedTransactions = result.getSuccessfulResults().values().stream().flatMap(Collection::stream).collect(toList());
-
-    var splitReport = createSplitTransactionReport(processedTransactions);
-
-    var ignoredTransactionsReports = createIgnoredTransactionsReports(result);
-
-    return new TransactionReport(splitReport.getTotalAmountIn(), splitReport.getTotalAmountOut(), splitReport.getTagReports(), splitReport.getExpenditureByDate(), ignoredTransactionsReports);
-  }
-
-  public TransactionReport2 create2(TransactionProcessorResult result) {
     var splitReports = splitAndCreateReports(result);
     var ignoredTransactionReports = createIgnoredTransactionsReports(result);
-    return new TransactionReport2(splitReports, ignoredTransactionReports);
+    return new TransactionReport(splitReports, ignoredTransactionReports);
   }
 
   private List<SplitTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult) {
