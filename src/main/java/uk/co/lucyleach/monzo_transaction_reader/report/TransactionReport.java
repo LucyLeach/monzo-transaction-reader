@@ -25,6 +25,7 @@ public class TransactionReport {
         .flatMap(Collection::stream)
         .map(TagLevelReport::getTag)
         .distinct()
+        .sorted()
         .collect(toList());
   }
 
