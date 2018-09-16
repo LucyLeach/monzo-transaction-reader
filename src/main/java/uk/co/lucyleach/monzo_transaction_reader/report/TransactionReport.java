@@ -1,10 +1,9 @@
 package uk.co.lucyleach.monzo_transaction_reader.report;
 
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * User: Lucy
@@ -18,6 +17,15 @@ public class TransactionReport {
   public TransactionReport(List<SplitTransactionReport> splitReports, List<IgnoredTransactionsReport> ignoredTransactionsReports) {
     this.splitReports = List.copyOf(splitReports);
     this.ignoredTransactionsReports = List.copyOf(ignoredTransactionsReports);
+  }
+
+  public List<String> getAllTagsSorted() {
+    return splitReports.stream()
+        .map(SplitTransactionReport::getTagReports)
+        .flatMap(Collection::stream)
+        .map(TagLevelReport::getTag)
+        .distinct()
+        .collect(toList());
   }
 
   public List<IgnoredTransactionsReport> getIgnoredTransactionsReports() {

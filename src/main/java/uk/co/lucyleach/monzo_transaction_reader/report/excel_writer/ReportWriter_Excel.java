@@ -34,6 +34,7 @@ public class ReportWriter_Excel {
     createSheets(report, workbook, new ExcelSheetWriter_DetailedTagReport(dateStyle));
     createSheets(report, workbook, new ExcelSheetWriter_ByDate(dateStyle));
     createSheets(report, workbook, new ExcelSheetWriter_IgnoredTransactions());
+    createSheets(report, workbook, new ExcelSheetWriter_AllTags());
 
     autoSizeAllColumnsOnAllSheets(workbook);
 
