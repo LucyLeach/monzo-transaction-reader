@@ -31,6 +31,10 @@ public class SplitTransactionReport {
     this.expenditureByDate = new TreeMap<>(expenditureByDate);
   }
 
+  public ZonedDateTime getEarliestTransaction() {
+    return earliestTransaction;
+  }
+
   public Money getTotalAmountIn() {
     return totalAmountIn;
   }

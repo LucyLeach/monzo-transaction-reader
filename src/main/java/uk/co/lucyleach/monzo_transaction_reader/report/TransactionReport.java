@@ -1,9 +1,9 @@
 package uk.co.lucyleach.monzo_transaction_reader.report;
 
+import java.time.Month;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * User: Lucy
@@ -19,15 +19,28 @@ public class TransactionReport {
     this.ignoredTransactionsReports = List.copyOf(ignoredTransactionsReports);
   }
 
-  public List<SplitTransactionReport> getSplitReports() {
-    return splitReports;
-  }
-
   public List<IgnoredTransactionsReport> getIgnoredTransactionsReports() {
     return ignoredTransactionsReports;
   }
 
   public Map<String, SplitTransactionReport> getSplitReportsByLabel() {
-    return splitReports.stream().collect(Collectors.toMap(r -> Integer.toString(r.hashCode()).substring(0,5), r -> r, (r1,r2) -> r2, LinkedHashMap::new));
+    Month previousMonth = null;
+    int extraNumLabel = 0;
+    var splitReportsByLabel = new LinkedHashMap<String, SplitTransactionReport>();
+    for(SplitTransactionReport splitReport: splitReports) {
+      Month thisReportMonth = splitReport.getEarliestTransaction().plusDays(5).getMonth();
+      if(thisReportMonth.equals(previousMonth)) {
+        extraNumLabel += 1;
+        var label = thisReportMonth.name().substring(0, 3) + "_" + extraNumLabel;
+        splitReportsByLabel.put(label, splitReport);
+      } else {
+        var label = thisReportMonth.name().substring(0, 3);
+        splitReportsByLabel.put(label, splitReport);
+        extraNumLabel = 0;
+        previousMonth = thisReportMonth;
+      }
+    }
+
+    return splitReportsByLabel;
   }
 }
