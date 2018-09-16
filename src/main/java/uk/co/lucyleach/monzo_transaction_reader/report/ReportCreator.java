@@ -9,10 +9,7 @@ import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransactio
 import uk.co.lucyleach.monzo_transaction_reader.processor.ReasonIgnored;
 import uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProcessorResult;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -28,29 +25,79 @@ import static java.util.stream.Collectors.toSet;
  */
 public class ReportCreator {
   public TransactionReport create(TransactionProcessorResult result) {
-    var processedTransactions = result.getSuccessfulResults().values().stream().flatMap(Collection::stream).collect(toSet());
+    var processedTransactions = result.getSuccessfulResults().values().stream().flatMap(Collection::stream).collect(toList());
 
-    var tagMap = processedTransactions.stream().collect(Collectors.groupingBy(ProcessedTransaction::getTag));
+    var splitReport = createSplitTransactionReport(processedTransactions);
+
+    var ignoredTransactionsReports = createIgnoredTransactionsReports(result);
+
+    return new TransactionReport(splitReport.getTotalAmountIn(), splitReport.getTotalAmountOut(), splitReport.getTagReports(), splitReport.getExpenditureByDate(), ignoredTransactionsReports);
+  }
+
+  public TransactionReport2 create2(TransactionProcessorResult result) {
+    var splitReports = splitAndCreateReports(result);
+    var ignoredTransactionReports = createIgnoredTransactionsReports(result);
+    return new TransactionReport2(splitReports, ignoredTransactionReports);
+  }
+
+  private List<SplitTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult) {
+    var transactionsSortedByDate = processorResult.getSuccessfulResults().values().stream()
+        .flatMap(Collection::stream)
+        .sorted(comparing(ProcessedTransaction::getDateTime))
+        .collect(toList());
+
+    if(transactionsSortedByDate.isEmpty()) {
+      return List.of();
+    }
+
+    var transactionsToSplitOn = transactionsSortedByDate.stream()
+        .filter(t -> t.getTag().equalsIgnoreCase("income"))
+        .filter(t -> t.getAmount().getAmountInPence() > 20000)
+        .collect(toSet());
+
+    var transactionsForThisPeriod = new ArrayList<ProcessedTransaction>();
+    var splitReports = new ArrayList<SplitTransactionReport>();
+    for(var transaction: transactionsSortedByDate) {
+      if(transactionsToSplitOn.contains(transaction)) {
+        if(!transactionsForThisPeriod.isEmpty()) {
+          splitReports.add(createSplitTransactionReport(transactionsForThisPeriod));
+          transactionsForThisPeriod = new ArrayList<>();
+        }
+      }
+      transactionsForThisPeriod.add(transaction);
+    }
+    splitReports.add(createSplitTransactionReport(transactionsForThisPeriod));
+
+    return splitReports;
+  }
+
+  private List<IgnoredTransactionsReport> createIgnoredTransactionsReports(TransactionProcessorResult result) {
+    var ignoredTransactionToReasonMap = result.getIgnoredTransactions();
+    var reasonToTransactionMap = invertMap(ignoredTransactionToReasonMap);
+    return reasonToTransactionMap.entrySet().stream()
+        .map(ReportCreator::createIgnoredTransactionReport)
+        .sorted(comparing(IgnoredTransactionsReport::getReasonIgnored))
+        .collect(toList());
+  }
+
+  private SplitTransactionReport createSplitTransactionReport(List<ProcessedTransaction> processedTransactionsSortedByDate) {
+    var tagMap = processedTransactionsSortedByDate.stream().collect(Collectors.groupingBy(ProcessedTransaction::getTag));
     var tagReports = tagMap.entrySet().stream()
         .map(ReportCreator::createTagLevelReport)
         .sorted(comparing(TagLevelReport::getTag))
         .collect(toList());
 
-    var amountIn = sumTransactionsWithFilter(processedTransactions, ProcessedTransaction::isPositive);
-    var amountOut = sumTransactionsWithFilter(processedTransactions, ProcessedTransaction::isNegative);
+    var amountIn = sumTransactionsWithFilter(processedTransactionsSortedByDate, ProcessedTransaction::isPositive);
+    var amountOut = sumTransactionsWithFilter(processedTransactionsSortedByDate, ProcessedTransaction::isNegative);
 
-    var dateToNegativeTransactionMap = processedTransactions.stream().filter(ProcessedTransaction::isNegative).collect(Collectors.groupingBy(t -> t.getDateTime().toLocalDate()));
+    var dateToNegativeTransactionMap = processedTransactionsSortedByDate.stream().filter(ProcessedTransaction::isNegative).collect(Collectors.groupingBy(t -> t.getDateTime().toLocalDate()));
     var dateToExpenditureMap = Maps.transformValues(dateToNegativeTransactionMap, ReportCreator::sumTransactions);
     var sortedDateToExpenditureMap = new TreeMap<>(dateToExpenditureMap);
 
-    var ignoredTransactionToReasonMap = result.getIgnoredTransactions();
-    var reasonToTransactionMap = invertMap(ignoredTransactionToReasonMap);
-    var ignoredTransactionsReports = reasonToTransactionMap.entrySet().stream()
-        .map(ReportCreator::createIgnoredTransactionReport)
-        .sorted(comparing(IgnoredTransactionsReport::getReasonIgnored))
-        .collect(toList());
+    var earliestTransactionDate = processedTransactionsSortedByDate.get(0).getDateTime();
+    var latestTransactionDate = processedTransactionsSortedByDate.get(processedTransactionsSortedByDate.size() - 1).getDateTime();
 
-    return new TransactionReport(amountIn, amountOut, tagReports, sortedDateToExpenditureMap, ignoredTransactionsReports);
+    return new SplitTransactionReport(earliestTransactionDate, latestTransactionDate, amountIn, amountOut, tagReports, sortedDateToExpenditureMap);
   }
 
   private static Map<ReasonIgnored, Collection<Transaction>> invertMap(Map<Transaction, ReasonIgnored> originalMap) {
