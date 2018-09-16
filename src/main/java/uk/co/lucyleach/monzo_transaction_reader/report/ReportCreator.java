@@ -84,10 +84,7 @@ public class ReportCreator {
     var dateToExpenditureMap = Maps.transformValues(dateToNegativeTransactionMap, ReportCreator::sumTransactions);
     var sortedDateToExpenditureMap = new TreeMap<>(dateToExpenditureMap);
 
-    var earliestTransactionDate = processedTransactionsSortedByDate.get(0).getDateTime();
-    var latestTransactionDate = processedTransactionsSortedByDate.get(processedTransactionsSortedByDate.size() - 1).getDateTime();
-
-    return new SplitTransactionReport(earliestTransactionDate, latestTransactionDate, amountIn, amountOut, tagReports, sortedDateToExpenditureMap);
+    return new SplitTransactionReport(processedTransactionsSortedByDate, amountIn, amountOut, tagReports, sortedDateToExpenditureMap);
   }
 
   private static Map<ReasonIgnored, Collection<Transaction>> invertMap(Map<Transaction, ReasonIgnored> originalMap) {

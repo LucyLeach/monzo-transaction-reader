@@ -1,6 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.report;
 
 import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransaction;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -14,17 +15,15 @@ import java.util.TreeMap;
  * Time: 10:37
  */
 public class SplitTransactionReport {
-  private final ZonedDateTime earliestTransaction;
-  private final ZonedDateTime latestTransaction;
+  private final List<ProcessedTransaction> plainListOfTransactions;
   private final Money totalAmountIn;
   private final Money totalAmountOut;
   private final List<TagLevelReport> tagReports;
   private final SortedMap<LocalDate, Money> expenditureByDate;
 
-  public SplitTransactionReport(ZonedDateTime earliestTransaction, ZonedDateTime latestTransaction, Money totalAmountIn,
-                                Money totalAmountOut, List<TagLevelReport> tagReports, SortedMap<LocalDate, Money> expenditureByDate) {
-    this.earliestTransaction = earliestTransaction;
-    this.latestTransaction = latestTransaction;
+  public SplitTransactionReport(List<ProcessedTransaction> plainListOfTransactions, Money totalAmountIn, Money totalAmountOut,
+                                List<TagLevelReport> tagReports, SortedMap<LocalDate, Money> expenditureByDate) {
+    this.plainListOfTransactions = List.copyOf(plainListOfTransactions);
     this.totalAmountIn = totalAmountIn;
     this.totalAmountOut = totalAmountOut;
     this.tagReports = List.copyOf(tagReports);
@@ -32,7 +31,11 @@ public class SplitTransactionReport {
   }
 
   public ZonedDateTime getEarliestTransaction() {
-    return earliestTransaction;
+    return plainListOfTransactions.get(0).getDateTime();
+  }
+
+  public List<ProcessedTransaction> getTransactions() {
+    return plainListOfTransactions;
   }
 
   public Money getTotalAmountIn() {

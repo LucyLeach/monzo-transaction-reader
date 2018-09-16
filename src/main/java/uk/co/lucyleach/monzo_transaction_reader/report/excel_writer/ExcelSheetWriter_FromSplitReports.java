@@ -17,7 +17,7 @@ import static java.util.stream.Collectors.toMap;
 public abstract class ExcelSheetWriter_FromSplitReports<R> implements ExcelSheetWriter<R> {
   @Override
   public Map<String, List<R>> getObjectsToWritePerSheet(TransactionReport report) {
-    return report.getSplitReportsByLabel().entrySet().stream()
+    return report.getSplitReportsByLabel(true).entrySet().stream()
         .collect(toMap(e -> getSheetName() + "_" + e.getKey(), e -> getObjectsFromSplitReport(e.getValue()), (r1,r2) -> r2, LinkedHashMap::new));
   }
 

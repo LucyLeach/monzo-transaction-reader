@@ -1,6 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.report;
 
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,11 +24,13 @@ public class TransactionReport {
     return ignoredTransactionsReports;
   }
 
-  public Map<String, SplitTransactionReport> getSplitReportsByLabel() {
+  public Map<String, SplitTransactionReport> getSplitReportsByLabel(boolean removeInitialStub) {
+    var splitReportsToLabel = removeInitialStub ? reportsWithoutInitialStub() : splitReports;
+
     Month previousMonth = null;
     int extraNumLabel = 0;
     var splitReportsByLabel = new LinkedHashMap<String, SplitTransactionReport>();
-    for(SplitTransactionReport splitReport: splitReports) {
+    for(SplitTransactionReport splitReport: splitReportsToLabel) {
       Month thisReportMonth = splitReport.getEarliestTransaction().plusDays(5).getMonth();
       if(thisReportMonth.equals(previousMonth)) {
         extraNumLabel += 1;
@@ -42,5 +45,19 @@ public class TransactionReport {
     }
 
     return splitReportsByLabel;
+  }
+
+  private List<SplitTransactionReport> reportsWithoutInitialStub() {
+    if(splitReports.size() > 1 && !startsWithIncomeTransaction(splitReports.get(0))) {
+      var mutableList = new ArrayList<>(splitReports);
+      mutableList.remove(0);
+      return mutableList;
+    } else {
+      return splitReports;
+    }
+  }
+
+  private boolean startsWithIncomeTransaction(SplitTransactionReport splitReport) {
+    return splitReport.getTransactions().get(0).getTag().equalsIgnoreCase("ignore");
   }
 }
