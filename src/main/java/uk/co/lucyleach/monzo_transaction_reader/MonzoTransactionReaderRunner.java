@@ -47,6 +47,7 @@ public class MonzoTransactionReaderRunner {
         .addPotsToRecogniseOut(props.getPotsToRecogniseOut())
         .addAutoTagMerchants(props.getAutoTagMerchants())
         .addAutoTagAccounts(props.getAutoTagAccounts())
+        .addTagsToReplace(props.getTagsToReplace())
         .build();
     var processorResult = transactionProcessor.process(transactionList, clientProcessingDetails);
     if(processorResult.getUnsuccessfulResults().isEmpty()) {

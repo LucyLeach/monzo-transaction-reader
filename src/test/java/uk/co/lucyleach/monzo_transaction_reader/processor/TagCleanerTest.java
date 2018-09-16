@@ -15,7 +15,31 @@ public class TagCleanerTest {
   @Test
   public void testNoChange() {
     var originalTag = "PlainOldTag";
-    var newTag = UNDER_TEST.cleanTag(originalTag, ClientProcessingDetails.builder().build());
-    assertEquals(originalTag, newTag);
+    var cleanedTag = UNDER_TEST.cleanTag(originalTag, ClientProcessingDetails.builder().build());
+    assertEquals(originalTag, cleanedTag);
+  }
+
+  @Test
+  public void testLowerToUpperCase() {
+    var originalTag = "startsLowerCase";
+    var cleanedTag = UNDER_TEST.cleanTag(originalTag, ClientProcessingDetails.builder().build());
+    assertEquals("StartsLowerCase", cleanedTag);
+  }
+
+  @Test
+  public void testReplacementInDetails() {
+    var originalTag = "OriginalTag";
+    var newTag = "NewTag";
+    var cleanedTag = UNDER_TEST.cleanTag(originalTag, ClientProcessingDetails.builder().addTagToReplace(originalTag, newTag).build());
+    assertEquals(newTag, cleanedTag);
+  }
+
+  @Test
+  public void testReplacementAfterLowerCaseCorrection() {
+    var originalTag = "lowerCase";
+    var tagToReplace = "LowerCase";
+    var newTag = "ReplacedTag";
+    var cleanedTag = UNDER_TEST.cleanTag(originalTag, ClientProcessingDetails.builder().addTagToReplace(tagToReplace, newTag).build());
+    assertEquals(newTag, cleanedTag);
   }
 }

@@ -27,6 +27,7 @@ public class TransactionProcessor {
   final static String POT_PREFIX = "pot_";
   final static String IGNORE_TAG = "#ignore";
   private final TagParser tagParser = new TagParser();
+  private final TagCleaner tagCleaner = new TagCleaner();
 
   public TransactionProcessorResult process(TransactionList transactions, ClientProcessingDetails clientDetails) {
     var results = transactions.getTransactions().stream()
@@ -50,11 +51,11 @@ public class TransactionProcessor {
   }
 
   private ProcessorResult processSaleTransaction(Transaction original, ClientProcessingDetails clientDetails) {
-    return processTaggedTransaction(original, saleTransactionNoteGetter(clientDetails), TransactionProcessor::createSaleTransactionWithTag);
+    return processTaggedTransaction(original, saleTransactionNoteGetter(clientDetails), t -> createSaleTransactionWithTag(t, clientDetails));
   }
 
   private ProcessorResult processTransferTransaction(Transaction original, ClientProcessingDetails clientDetails) {
-    return processTaggedTransaction(original, transferTransactionNoteGetter(clientDetails), TransactionProcessor::createTransferTransactionWithTag);
+    return processTaggedTransaction(original, transferTransactionNoteGetter(clientDetails), t -> createTransferTransactionWithTag(t, clientDetails));
   }
 
   private ProcessorResult processTaggedTransaction(Transaction original, Function<Transaction, String> noteGetter,
@@ -138,14 +139,14 @@ public class TransactionProcessor {
     };
   }
 
-  private static Function<Map.Entry<String, Integer>, ProcessedTransaction> createSaleTransactionWithTag(Transaction original) {
+  private Function<Map.Entry<String, Integer>, ProcessedTransaction> createSaleTransactionWithTag(Transaction original, ClientProcessingDetails clientDetails) {
     return entry -> new SaleTransaction(original.getId(), convertDateTime(original.getCreated()),
-        new Money(entry.getValue(), original.getCurrency()), original.getMerchant().getName(), entry.getKey());
+        new Money(entry.getValue(), original.getCurrency()), original.getMerchant().getName(), tagCleaner.cleanTag(entry.getKey(), clientDetails));
   }
 
-  private static Function<Map.Entry<String, Integer>, ProcessedTransaction> createTransferTransactionWithTag(Transaction original) {
+  private Function<Map.Entry<String, Integer>, ProcessedTransaction> createTransferTransactionWithTag(Transaction original, ClientProcessingDetails clientDetails) {
     return entry -> new TransferTransaction(original.getId(), convertDateTime(original.getCreated()), new Money(entry.getValue(), original.getCurrency()),
-        createWhereFromString(original.getDescription(), original.getCounterparty()), entry.getKey());
+        createWhereFromString(original.getDescription(), original.getCounterparty()), tagCleaner.cleanTag(entry.getKey(), clientDetails));
   }
 
   private static ZonedDateTime convertDateTime(String dateTimeString) {

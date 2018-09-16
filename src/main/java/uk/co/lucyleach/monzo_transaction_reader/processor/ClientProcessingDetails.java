@@ -13,12 +13,15 @@ public class ClientProcessingDetails {
   private final Map<String, String> potsToRecogniseOut;
   private final Map<String, String> autoTagMerchants;
   private final Map<String, String> autoTagAccounts;
+  private final Map<String, String> tagsToReplace;
 
-  private ClientProcessingDetails(Map<String, String> potsToRecogniseIn, Map<String, String> potsToRecogniseOut, Map<String, String> autoTagMerchants, Map<String, String> autoTagAccounts) {
+  private ClientProcessingDetails(Map<String, String> potsToRecogniseIn, Map<String, String> potsToRecogniseOut, Map<String, String> autoTagMerchants,
+                                  Map<String, String> autoTagAccounts, Map<String, String> tagsToReplace) {
     this.potsToRecogniseIn = Map.copyOf(potsToRecogniseIn);
     this.potsToRecogniseOut = Map.copyOf(potsToRecogniseOut);
     this.autoTagMerchants = Map.copyOf(autoTagMerchants);
     this.autoTagAccounts = Map.copyOf(autoTagAccounts);
+    this.tagsToReplace = Map.copyOf(tagsToReplace);
   }
 
   public Map<String, String> getPotsToRecogniseIn() {
@@ -37,6 +40,10 @@ public class ClientProcessingDetails {
     return autoTagAccounts;
   }
 
+  public Map<String, String> getTagsToReplace() {
+    return tagsToReplace;
+  }
+
   public static Builder builder() {
     return new Builder();
   }
@@ -46,13 +53,14 @@ public class ClientProcessingDetails {
     private final Map<String, String> potsToRecogniseOut;
     private final Map<String, String> autoTagMerchants;
     private final Map<String, String> autoTagAccounts;
-
+    private final Map<String, String> tagsToReplace;
 
     public Builder() {
       potsToRecogniseIn = new HashMap<>();
       potsToRecogniseOut = new HashMap<>();
       autoTagMerchants = new HashMap<>();
       autoTagAccounts = new HashMap<>();
+      tagsToReplace = new HashMap<>();
     }
 
     public Builder addPotsToRecogniseIn(Map<String, String> potsToRecogniseIn) {
@@ -95,8 +103,18 @@ public class ClientProcessingDetails {
       return this;
     }
 
+    public Builder addTagsToReplace(Map<String, String> tagsToReplace) {
+      this.tagsToReplace.putAll(tagsToReplace);
+      return this;
+    }
+
+    public Builder addTagToReplace(String originalTag, String replacementTag) {
+      this.tagsToReplace.put(originalTag, replacementTag);
+      return this;
+    }
+
     public ClientProcessingDetails build() {
-      return new ClientProcessingDetails(potsToRecogniseIn, potsToRecogniseOut, autoTagMerchants, autoTagAccounts);
+      return new ClientProcessingDetails(potsToRecogniseIn, potsToRecogniseOut, autoTagMerchants, autoTagAccounts, tagsToReplace);
     }
   }
 }
