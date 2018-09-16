@@ -3,7 +3,7 @@ package uk.co.lucyleach.monzo_transaction_reader.report.excel_writer;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
-import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport2;
+import uk.co.lucyleach.monzo_transaction_reader.report.SplitTransactionReport;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -11,14 +11,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * User: Lucy
  * Date: 14/09/2018
  * Time: 21:41
  */
-public class ExcelSheetWriter_ByDate implements ExcelSheetWriter<Map.Entry<LocalDate, Money>> {
+public class ExcelSheetWriter_ByDate extends ExcelSheetWriter_FromSplitReports<Map.Entry<LocalDate, Money>> {
   private final CellStyle dateStyle;
 
   public ExcelSheetWriter_ByDate(CellStyle dateStyle) {
@@ -26,9 +25,13 @@ public class ExcelSheetWriter_ByDate implements ExcelSheetWriter<Map.Entry<Local
   }
 
   @Override
-  public Map<String, List<Map.Entry<LocalDate, Money>>> getObjectsToWritePerSheet(TransactionReport2 report) {
-    return report.getSplitReportsByLabel().entrySet().stream()
-        .collect(Collectors.toMap(e -> "Expenditure_By_Date_" + e.getKey(), e -> List.copyOf(e.getValue().getExpenditureByDate().entrySet())));
+  String getSheetName() {
+    return "Expenditure_By_Date";
+  }
+
+  @Override
+  List<Map.Entry<LocalDate, Money>> getObjectsFromSplitReport(SplitTransactionReport splitReport) {
+    return List.copyOf(splitReport.getExpenditureByDate().entrySet());
   }
 
   @Override

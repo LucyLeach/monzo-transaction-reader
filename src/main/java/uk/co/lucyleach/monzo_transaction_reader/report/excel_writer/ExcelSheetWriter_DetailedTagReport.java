@@ -2,23 +2,20 @@ package uk.co.lucyleach.monzo_transaction_reader.report.excel_writer;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
+import uk.co.lucyleach.monzo_transaction_reader.report.SplitTransactionReport;
 import uk.co.lucyleach.monzo_transaction_reader.report.TagLevelReport;
-import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport2;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
-
-import static java.util.stream.Collectors.toMap;
 
 /**
  * User: Lucy
  * Date: 14/09/2018
  * Time: 21:30
  */
-public class ExcelSheetWriter_DetailedTagReport implements ExcelSheetWriter<TagLevelReport> {
+public class ExcelSheetWriter_DetailedTagReport extends ExcelSheetWriter_FromSplitReports<TagLevelReport> {
   private final CellStyle dateStyle;
 
   public ExcelSheetWriter_DetailedTagReport(CellStyle dateStyle) {
@@ -26,9 +23,13 @@ public class ExcelSheetWriter_DetailedTagReport implements ExcelSheetWriter<TagL
   }
 
   @Override
-  public Map<String, List<TagLevelReport>> getObjectsToWritePerSheet(TransactionReport2 report) {
-    return report.getSplitReportsByLabel().entrySet().stream()
-        .collect(toMap(e -> "Detailed_Tag_Report_" + e.getKey(), e -> e.getValue().getTagReports()));
+  String getSheetName() {
+    return "Detailed_Tag_Report";
+  }
+
+  @Override
+  List<TagLevelReport> getObjectsFromSplitReport(SplitTransactionReport splitReport) {
+    return splitReport.getTagReports();
   }
 
   @Override
