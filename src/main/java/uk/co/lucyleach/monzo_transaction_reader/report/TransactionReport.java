@@ -27,6 +27,7 @@ public class TransactionReport {
   public Map<String, SplitTransactionReport> getSplitReportsByLabel(boolean removeInitialStub) {
     var splitReportsToLabel = removeInitialStub ? reportsWithoutInitialStub() : splitReports;
 
+    //Try to label by month, but if the previous label was the month then add an extra number for uniqueness
     Month previousMonth = null;
     int extraNumLabel = 0;
     var splitReportsByLabel = new LinkedHashMap<String, SplitTransactionReport>();
