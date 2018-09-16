@@ -370,6 +370,23 @@ public class TransactionProcessorTest {
   }
 
   @Test
+  public void testTransferOverrideWhenTagIsIgnore() {
+    var accountNumber = 124;
+    var sortCode = 876;
+    var defaultTag = "DefaultTag";
+    var clientDetails = ClientProcessingDetails.builder().addAutoTagAccount(accountNumber + "/" + sortCode, "#" + defaultTag).build();
+    var originalTransaction = new Transaction("Don't override Ignore tag", 10000, "GBP", "2018-02-03T08:00:00.0Z", IGNORE_TAG, new Merchant(),
+        "Description", new Counterparty(accountNumber, sortCode));
+
+    var result = UNDER_TEST.process(new TransactionList(originalTransaction), clientDetails);
+
+    checkForNulls(result);
+    checkNoSuccessfulResults(result);
+    checkNoUnsuccessfulResults(result);
+    checkIgnoredTransactions(result, ReasonIgnored.IGNORE_TAG, originalTransaction);
+  }
+
+  @Test
   public void testUnimplementedTransactionTypes() {
     var dateString = "2018-01-03T08:00:00.0Z";
     var missingAllDetails = new Transaction("Bank transfer in", 420, "GBP", dateString, "Notes", null, "Description", emptyCounterparty());

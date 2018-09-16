@@ -129,8 +129,8 @@ public class TransactionProcessor {
   private static Function<Transaction, String> transferTransactionNoteGetter(ClientProcessingDetails clientDetails) {
     return transaction -> {
       var accountId = transaction.getCounterparty().getAccountId();
-      //NB overrides existing notes
-      if(clientDetails.getAutoTagAccounts().containsKey(accountId)) {
+      //NB overrides existing notes unless ignored
+      if(clientDetails.getAutoTagAccounts().containsKey(accountId) && !checkForIgnoreTag(transaction.getNotes())) {
         return clientDetails.getAutoTagAccounts().get(accountId);
       } else {
         return transaction.getNotes();
