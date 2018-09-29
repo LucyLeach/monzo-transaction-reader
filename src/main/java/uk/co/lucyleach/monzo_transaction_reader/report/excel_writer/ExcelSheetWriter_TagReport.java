@@ -25,7 +25,7 @@ public class ExcelSheetWriter_TagReport extends ExcelSheetWriter_FromSplitReport
 
   @Override
   public String[] getTitles() {
-    return new String[]{"Tag Name", "Total In", "Total Out", "Num Transactions"};
+    return new String[]{"Tag Name", "Classification", "Total In", "Total Out", "Num Transactions"};
   }
 
   @Override
@@ -33,9 +33,10 @@ public class ExcelSheetWriter_TagReport extends ExcelSheetWriter_FromSplitReport
     return report -> {
       var row = sheet.createRow(sheet.getPhysicalNumberOfRows());
       row.createCell(0).setCellValue(report.getTag());
-      row.createCell(1).setCellValue(report.getTotalAmountIn().getAmountInPounds().doubleValue());
-      row.createCell(2).setCellValue(report.getTotalAmountOut().getAmountInPounds().doubleValue());
-      row.createCell(3).setCellValue(report.getNumTransactions());
+      row.createCell(1).setCellValue(report.getTagClassification());
+      row.createCell(2).setCellValue(report.getTotalAmountIn().getAmountInPounds().doubleValue());
+      row.createCell(3).setCellValue(report.getTotalAmountOut().getAmountInPounds().doubleValue());
+      row.createCell(4).setCellValue(report.getNumTransactions());
     };
   }
 }

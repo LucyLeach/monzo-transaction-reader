@@ -1,12 +1,12 @@
 package uk.co.lucyleach.monzo_transaction_reader;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * User: Lucy
@@ -28,7 +28,8 @@ class ClientAccountDetailsReader {
     var autoTagMerchants = readMap("merchants_to_auto_tag", properties, filePath);
     var autoTagAccounts = readMap("accounts_to_auto_tag", properties, filePath);
     var tagsToReplace = readMap("tags_to_replace", properties, filePath);
-    return new ClientAccountDetails(clientId, clientSecret, accountId, potsToRecogniseIn, potsToRecogniseOut, autoTagMerchants, autoTagAccounts, tagsToReplace);
+    var tagClassification = invertMultimap(readMultimap("tag_classification", properties, filePath));
+    return new ClientAccountDetails(clientId, clientSecret, accountId, potsToRecogniseIn, potsToRecogniseOut, autoTagMerchants, autoTagAccounts, tagsToReplace, tagClassification);
   }
 
   private String readNonNullProperty(String propertyName, Properties properties, String filePath) throws IOException {
@@ -51,5 +52,32 @@ class ClientAccountDetailsReader {
         throw new IOException("Error interpretting " + propertyName + " as a map in file " + filePath + ": " + e.getMessage(), e);
       }
     }
+  }
+
+  private Multimap<String, String> readMultimap(String propertyName, Properties properties, String filePath) throws IOException {
+    var property = properties.getProperty(propertyName);
+    if(property == null) {
+      return ArrayListMultimap.create();
+    } else {
+      try {
+        //noinspection UnstableApiUsage
+        var keyToCsvString = Splitter.on(";").withKeyValueSeparator("=").split(property);
+        //noinspection UnstableApiUsage
+        Map<String, Collection<String>> mapToCollection = Maps.transformValues(keyToCsvString, v -> Splitter.on(",").splitToList(v));
+        var multimapBuilder = ImmutableMultimap.<String, String>builder();
+        mapToCollection.entrySet().stream().forEach(e -> multimapBuilder.putAll(e.getKey(), e.getValue()));
+        return multimapBuilder.build();
+      } catch(Exception e) {
+        throw new IOException("Error interpretting " + propertyName + " as a multimap in file " + filePath + ": " + e.getMessage(), e);
+      }
+    }
+  }
+
+  private Map<String, String> invertMultimap(Multimap<String, String> multimap) {
+    var mapBuilder = ImmutableMap.<String, String>builder();
+    multimap.asMap().entrySet().stream().forEach(e -> {
+      e.getValue().stream().forEach(v -> mapBuilder.put(v, e.getKey()));
+    });
+    return mapBuilder.build();
   }
 }

@@ -24,13 +24,13 @@ import static java.util.stream.Collectors.toSet;
  * Time: 21:39
  */
 public class ReportCreator {
-  public TransactionReport create(TransactionProcessorResult result) {
-    var splitReports = splitAndCreateReports(result);
+  public TransactionReport create(TransactionProcessorResult result, Map<String, String> tagClassifications) {
+    var splitReports = splitAndCreateReports(result, tagClassifications);
     var ignoredTransactionReports = createIgnoredTransactionsReports(result);
     return new TransactionReport(splitReports, ignoredTransactionReports);
   }
 
-  private List<SplitTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult) {
+  private List<SplitTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult, Map<String, String> tagClassifications) {
     var transactionsSortedByDate = processorResult.getSuccessfulResults().values().stream()
         .flatMap(Collection::stream)
         .sorted(comparing(ProcessedTransaction::getDateTime))
@@ -50,13 +50,13 @@ public class ReportCreator {
     for(var transaction: transactionsSortedByDate) {
       if(transactionsToSplitOn.contains(transaction)) {
         if(!transactionsForThisPeriod.isEmpty()) {
-          splitReports.add(createSplitTransactionReport(transactionsForThisPeriod));
+          splitReports.add(createSplitTransactionReport(transactionsForThisPeriod, tagClassifications));
           transactionsForThisPeriod = new ArrayList<>();
         }
       }
       transactionsForThisPeriod.add(transaction);
     }
-    splitReports.add(createSplitTransactionReport(transactionsForThisPeriod));
+    splitReports.add(createSplitTransactionReport(transactionsForThisPeriod, tagClassifications));
 
     return splitReports;
   }
@@ -70,10 +70,10 @@ public class ReportCreator {
         .collect(toList());
   }
 
-  private SplitTransactionReport createSplitTransactionReport(List<ProcessedTransaction> processedTransactionsSortedByDate) {
+  private SplitTransactionReport createSplitTransactionReport(List<ProcessedTransaction> processedTransactionsSortedByDate, Map<String, String> tagClassifications) {
     var tagMap = processedTransactionsSortedByDate.stream().collect(Collectors.groupingBy(ProcessedTransaction::getTag));
     var tagReports = tagMap.entrySet().stream()
-        .map(ReportCreator::createTagLevelReport)
+        .map(e -> createTagLevelReport(e, tagClassifications))
         .sorted(comparing(TagLevelReport::getTag))
         .collect(toList());
 
@@ -106,8 +106,9 @@ public class ReportCreator {
     return new IgnoredTransactionsReport(reason, new Money(amountIn, gbp), new Money(amountOut, gbp), sortedTransactions);
   }
 
-  private static TagLevelReport createTagLevelReport(Map.Entry<String, List<ProcessedTransaction>> tagMapEntry) {
+  private static TagLevelReport createTagLevelReport(Map.Entry<String, List<ProcessedTransaction>> tagMapEntry, Map<String, String> tagClassifications) {
     var tag = tagMapEntry.getKey();
+    var tagClassification = tagClassifications.get(tag);
     var transactions = tagMapEntry.getValue();
 
     var sortedTransactions = transactions.stream().sorted(comparing(ProcessedTransaction::getDateTime)).collect(toList());
@@ -115,7 +116,7 @@ public class ReportCreator {
     var amountIn = sumTransactionsWithFilter(transactions, ProcessedTransaction::isPositive);
     var amountOut = sumTransactionsWithFilter(transactions, ProcessedTransaction::isNegative);
 
-    return new TagLevelReport(tag, amountIn, amountOut, sortedTransactions);
+    return new TagLevelReport(tag, tagClassification, amountIn, amountOut, sortedTransactions);
   }
 
   private static Money sumTransactions(Collection<ProcessedTransaction> transactions) {

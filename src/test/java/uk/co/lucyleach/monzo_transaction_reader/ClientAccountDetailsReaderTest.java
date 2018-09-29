@@ -33,6 +33,7 @@ public class ClientAccountDetailsReaderTest {
     assertEquals(Map.of("Merchant", "#MerchantTag", "OtherMerchant", "#OtherMerchantTag"), details.getAutoTagMerchants());
     assertEquals(Map.of("123/456", "#Tag1", "789/123", "#Tag2"), details.getAutoTagAccounts());
     assertEquals(Map.of("foo","bar", "foo1", "bar1"), details.getTagsToReplace());
+    assertEquals(Map.of("Tag1", "TopTagA", "Tag2", "TopTagA", "Tag3", "TopTagB", "Tag4", "TopTagC", "Tag5", "TopTagC", "Tag6", "TopTagC"), details.getTagClassifications());
   }
 
   @Test

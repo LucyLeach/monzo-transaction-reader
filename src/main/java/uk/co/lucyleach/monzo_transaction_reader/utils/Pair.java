@@ -1,5 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.utils;
 
+import java.util.Objects;
+
 /**
  * User: Lucy
  * Date: 29/07/2018
@@ -20,5 +22,19 @@ public class Pair<A, B> {
 
   public B getB() {
     return b;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if(this == o) return true;
+    if(o == null || getClass() != o.getClass()) return false;
+    var pair = (Pair<?, ?>) o;
+    return Objects.equals(a, pair.a) &&
+        Objects.equals(b, pair.b);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(a, b);
   }
 }

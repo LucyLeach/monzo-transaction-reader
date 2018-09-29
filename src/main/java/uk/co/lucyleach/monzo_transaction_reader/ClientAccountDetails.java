@@ -16,10 +16,11 @@ class ClientAccountDetails {
   private final Map<String, String> autoTagMerchants;
   private final Map<String, String> autoTagAccounts;
   private final Map<String, String> tagsToReplace;
+  private final Map<String, String> tagClassifications;
 
   ClientAccountDetails(String clientId, String clientSecret, String accountId, Map<String, String> potsToRecogniseIn,
                        Map<String, String> potsToRecogniseOut, Map<String, String> autoTagMerchants, Map<String, String> autoTagAccounts,
-                       Map<String, String> tagsToReplace) {
+                       Map<String, String> tagsToReplace, Map<String, String> tagClassifications) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.accountId = accountId;
@@ -28,6 +29,7 @@ class ClientAccountDetails {
     this.autoTagMerchants = autoTagMerchants;
     this.autoTagAccounts = autoTagAccounts;
     this.tagsToReplace = tagsToReplace;
+    this.tagClassifications = tagClassifications;
   }
 
   String getClientId() {
@@ -58,7 +60,11 @@ class ClientAccountDetails {
     return autoTagAccounts;
   }
 
-  public Map<String, String> getTagsToReplace() {
+  Map<String, String> getTagsToReplace() {
     return tagsToReplace;
+  }
+
+  Map<String, String> getTagClassifications() {
+    return tagClassifications;
   }
 }

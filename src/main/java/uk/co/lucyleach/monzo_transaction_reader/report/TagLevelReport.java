@@ -12,12 +12,14 @@ import java.util.List;
  */
 public class TagLevelReport {
   private final String tag;
+  private final String tagClassification;
   private final Money totalAmountIn;
   private final Money totalAmountOut;
   private final List<ProcessedTransaction> contributingTransactions;
 
-  public TagLevelReport(String tag, Money totalAmountIn, Money totalAmountOut, List<ProcessedTransaction> contributingTransactions) {
+  public TagLevelReport(String tag, String tagClassification, Money totalAmountIn, Money totalAmountOut, List<ProcessedTransaction> contributingTransactions) {
     this.tag = tag;
+    this.tagClassification = tagClassification;
     this.totalAmountIn = totalAmountIn;
     this.totalAmountOut = totalAmountOut;
     this.contributingTransactions = List.copyOf(contributingTransactions);
@@ -29,6 +31,10 @@ public class TagLevelReport {
 
   public String getTag() {
     return tag;
+  }
+
+  public String getTagClassification() {
+    return tagClassification;
   }
 
   public Money getTotalAmountIn() {

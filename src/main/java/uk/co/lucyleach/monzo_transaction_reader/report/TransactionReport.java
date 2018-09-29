@@ -1,5 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.report;
 
+import uk.co.lucyleach.monzo_transaction_reader.utils.Pair;
+
 import java.time.Month;
 import java.util.*;
 
@@ -19,13 +21,13 @@ public class TransactionReport {
     this.ignoredTransactionsReports = List.copyOf(ignoredTransactionsReports);
   }
 
-  public List<String> getAllTagsSorted() {
+  public List<Pair<String, String>> getAllTagsSortedWithClassification() {
     return splitReports.stream()
         .map(SplitTransactionReport::getTagReports)
         .flatMap(Collection::stream)
-        .map(TagLevelReport::getTag)
+        .map(r -> new Pair<String, String>(r.getTag(), r.getTagClassification()))
         .distinct()
-        .sorted()
+        .sorted(Comparator.comparing(Pair::getA))
         .collect(toList());
   }
 
