@@ -40,10 +40,10 @@ public class TransactionReport {
 
     //Try to label by month, but if the previous label was the month then add an extra number for uniqueness
     Month previousMonth = null;
-    int extraNumLabel = 0;
+    var extraNumLabel = 0;
     var splitReportsByLabel = new LinkedHashMap<String, SplitTransactionReport>();
-    for(SplitTransactionReport splitReport: splitReportsToLabel) {
-      Month thisReportMonth = splitReport.getEarliestTransaction().plusDays(5).getMonth();
+    for(var splitReport: splitReportsToLabel) {
+      var thisReportMonth = splitReport.getEarliestTransaction().plusDays(5).getMonth();
       if(thisReportMonth.equals(previousMonth)) {
         extraNumLabel += 1;
         var label = thisReportMonth.name().substring(0, 3) + "_" + extraNumLabel;
@@ -57,6 +57,17 @@ public class TransactionReport {
     }
 
     return splitReportsByLabel;
+  }
+
+  public List<CategoryReport> getCategoryReports() {
+    var splitReportsByLabel = getSplitReportsByLabel(true);
+    var allCategories = splitReports.stream()
+        .flatMap(sr -> sr.getTagReports().stream())
+        .map(TagLevelReport::getTagClassification)
+        .sorted()
+        .collect(toList());
+    //TODO
+    return null;
   }
 
   private List<SplitTransactionReport> reportsWithoutInitialStub() {

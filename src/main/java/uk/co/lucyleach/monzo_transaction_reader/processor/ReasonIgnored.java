@@ -8,7 +8,8 @@ package uk.co.lucyleach.monzo_transaction_reader.processor;
 public enum ReasonIgnored {
   ZERO_TRANSACTION("Zero transaction"),
   IGNORE_TAG("Tagged with #Ignore"),
-  UNCONFIGURED_POT("Unconfigured pot");
+  UNCONFIGURED_POT("Unconfigured pot"),
+  NON_GBP("Not in GBP");
 
   private final String humanString;
 

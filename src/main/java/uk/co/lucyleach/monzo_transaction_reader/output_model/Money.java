@@ -11,7 +11,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Date: 29/07/2018
  * Time: 21:03
  */
-public class Money {
+public class Money implements Comparable<Money>{
   private final int amountInPence;
   private final String currency;
 
@@ -62,5 +62,10 @@ public class Money {
   @Override
   public int hashCode() {
     return Objects.hash(amountInPence, currency);
+  }
+
+  @Override
+  public int compareTo(Money o) {
+    return Integer.compare(amountInPence, o.getAmountInPence());
   }
 }

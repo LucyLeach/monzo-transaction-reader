@@ -21,7 +21,7 @@ public class ExcelSheetWriter_IgnoredTransactions implements ExcelSheetWriter<Ig
   }
 
   @Override
-  public String[] getTitles() {
+  public String[] getTitles(TransactionReport report) {
     return new String[]{"Reason", "Transaction ID", "Amount", "Currency", "Created", "Notes", "Description", "Merchant", "Counterparty"};
   }
 

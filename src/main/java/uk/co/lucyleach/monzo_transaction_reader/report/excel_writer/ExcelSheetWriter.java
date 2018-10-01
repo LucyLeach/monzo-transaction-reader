@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 public interface ExcelSheetWriter<R> {
   Map<String, List<R>> getObjectsToWritePerSheet(TransactionReport report);
 
-  String[] getTitles();
+  String[] getTitles(TransactionReport report);
 
   Consumer<R> objectWriter(Sheet sheet);
 }

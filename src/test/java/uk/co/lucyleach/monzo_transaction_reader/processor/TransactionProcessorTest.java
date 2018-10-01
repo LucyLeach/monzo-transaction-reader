@@ -332,6 +332,18 @@ public class TransactionProcessorTest {
   }
 
   @Test
+  public void testNonGbp() {
+    var nonGbpTransaction = new Transaction("Non GBP", 987, "USD", "2018-01-11T10:00:00.0Z", "Notes", new Merchant(), "Description", new Counterparty());
+
+    var result = UNDER_TEST.process(new TransactionList(nonGbpTransaction), ClientProcessingDetails.builder().build());
+
+    checkForNulls(result);
+    checkNoSuccessfulResults(result);
+    checkNoUnsuccessfulResults(result);
+    checkIgnoredTransactions(result, ReasonIgnored.NON_GBP, nonGbpTransaction);
+  }
+
+  @Test
   public void testTransferDefaultTag() {
     var accountNumber = 124;
     var sortCode = 876;

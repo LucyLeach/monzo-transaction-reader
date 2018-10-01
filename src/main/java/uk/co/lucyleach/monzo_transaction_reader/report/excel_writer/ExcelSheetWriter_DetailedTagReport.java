@@ -4,6 +4,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
 import uk.co.lucyleach.monzo_transaction_reader.report.SplitTransactionReport;
 import uk.co.lucyleach.monzo_transaction_reader.report.TagLevelReport;
+import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport;
 
 import java.util.Date;
 import java.util.List;
@@ -33,7 +34,7 @@ public class ExcelSheetWriter_DetailedTagReport extends ExcelSheetWriter_FromSpl
   }
 
   @Override
-  public String[] getTitles() {
+  public String[] getTitles(TransactionReport report) {
     return new String[]{"Tag Name", "Monzo ID", "Date Time", "Amount", "Where"};
   }
 

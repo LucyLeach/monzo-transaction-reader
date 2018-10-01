@@ -20,7 +20,7 @@ public class ExcelSheetWriter_AllTags implements ExcelSheetWriter<Pair<String, S
   }
 
   @Override
-  public String[] getTitles() {
+  public String[] getTitles(TransactionReport report) {
     return new String[]{"Tag", "Classification"};
   }
 

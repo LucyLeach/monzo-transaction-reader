@@ -4,6 +4,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
 import uk.co.lucyleach.monzo_transaction_reader.report.SplitTransactionReport;
+import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -35,7 +36,7 @@ public class ExcelSheetWriter_ByDate extends ExcelSheetWriter_FromSplitReports<M
   }
 
   @Override
-  public String[] getTitles() {
+  public String[] getTitles(TransactionReport report) {
     return new String[]{"Date", "Expenditure"};
   }
 
