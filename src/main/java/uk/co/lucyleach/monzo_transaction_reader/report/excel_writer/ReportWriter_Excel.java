@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 /**
@@ -30,6 +29,7 @@ public class ReportWriter_Excel {
     Workbook workbook = new XSSFWorkbook();
     var dateStyle = getDateStyle(workbook);
 
+    createSheets(report, workbook, new ExcelSheetWriter_CategoryComparison());
     createSheets(report, workbook, new ExcelSheetWriter_TagReport());
     createSheets(report, workbook, new ExcelSheetWriter_DetailedTagReport(dateStyle));
     createSheets(report, workbook, new ExcelSheetWriter_ByDate(dateStyle));
@@ -46,16 +46,15 @@ public class ReportWriter_Excel {
   private static <R> void createSheets(TransactionReport report, Workbook workbook, ExcelSheetWriter<R> writer) {
     writer.getObjectsToWritePerSheet(report).entrySet().stream().forEachOrdered(e -> {
       var sheet = workbook.createSheet(e.getKey());
-      createTitleCells(getTitleStyle(workbook), sheet, writer::getTitles);
+      createTitleCells(getTitleStyle(workbook), sheet, writer.getTitles(report));
       e.getValue().stream().forEachOrdered(writer.objectWriter(sheet));
     });
   }
 
-  private static void createTitleCells(CellStyle titleStyle, Sheet sheet, Supplier<String[]> titles) {
+  private static void createTitleCells(CellStyle titleStyle, Sheet sheet, String[] titles) {
     var row = sheet.createRow(0);
-    var cellContents = titles.get();
-    IntStream.range(0, cellContents.length).forEach(i -> {
-      var content = cellContents[i];
+    IntStream.range(0, titles.length).forEach(i -> {
+      var content = titles[i];
       var cell = row.createCell(i);
       cell.setCellValue(content);
       cell.setCellStyle(titleStyle);

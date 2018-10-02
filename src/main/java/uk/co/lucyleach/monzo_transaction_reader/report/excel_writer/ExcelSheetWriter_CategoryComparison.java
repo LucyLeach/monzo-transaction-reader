@@ -31,7 +31,7 @@ public class ExcelSheetWriter_CategoryComparison implements ExcelSheetWriter<Cat
       var row = sheet.createRow(sheet.getPhysicalNumberOfRows());
       row.createCell(0).setCellValue(categoryReport.getCategory());
       categoryReport.getAmountOutBySplit().stream().forEachOrdered(amount -> {
-        row.createCell(row.getPhysicalNumberOfCells()).setCellValue(amount.getAmountInPounds().doubleValue());
+        row.createCell(row.getPhysicalNumberOfCells()).setCellValue(amount);
       });
     };
   }

@@ -1,7 +1,5 @@
 package uk.co.lucyleach.monzo_transaction_reader.report;
 
-import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
-
 import java.util.List;
 
 /**
@@ -11,9 +9,9 @@ import java.util.List;
  */
 public class CategoryReport {
   private final String category;
-  private final List<Money> amountOutBySplit;
+  private final List<Double> amountOutBySplit;
 
-  public CategoryReport(String category, List<Money> amountOutBySplit) {
+  public CategoryReport(String category, List<Double> amountOutBySplit) {
     this.category = category;
     this.amountOutBySplit = List.copyOf(amountOutBySplit);
   }
@@ -22,7 +20,7 @@ public class CategoryReport {
     return category;
   }
 
-  public List<Money> getAmountOutBySplit() {
+  public List<Double> getAmountOutBySplit() {
     return amountOutBySplit;
   }
 }

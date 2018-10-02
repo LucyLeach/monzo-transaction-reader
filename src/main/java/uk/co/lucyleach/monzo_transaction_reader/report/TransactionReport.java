@@ -64,10 +64,23 @@ public class TransactionReport {
     var allCategories = splitReports.stream()
         .flatMap(sr -> sr.getTagReports().stream())
         .map(TagLevelReport::getTagClassification)
+        .filter(Objects::nonNull)
+        .distinct()
         .sorted()
         .collect(toList());
-    //TODO
-    return null;
+    var categoryReports = new ArrayList<CategoryReport>();
+    for(var category: allCategories) {
+      var amountBySplit = new ArrayList<Double>();
+      for(var splitReport: splitReportsByLabel.values()) {
+        var amount = splitReport.getTagReports().stream()
+            .filter(tr -> category.equals(tr.getTagClassification()))
+            .mapToDouble(tr -> tr.getTotalAmount().getAmountInPounds().doubleValue())
+            .sum();
+        amountBySplit.add(amount);
+      }
+      categoryReports.add(new CategoryReport(category, amountBySplit));
+    }
+    return categoryReports;
   }
 
   private List<SplitTransactionReport> reportsWithoutInitialStub() {
