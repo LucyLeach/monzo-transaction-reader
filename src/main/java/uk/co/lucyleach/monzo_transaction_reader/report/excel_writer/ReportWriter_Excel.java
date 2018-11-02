@@ -30,11 +30,11 @@ public class ReportWriter_Excel {
     var dateStyle = getDateStyle(workbook);
 
     createSheets(report, workbook, new ExcelSheetWriter_CategoryComparison());
+    createSheets(report, workbook, new ExcelSheetWriter_AllTags());
+    createSheets(report, workbook, new ExcelSheetWriter_IgnoredTransactions());
     createSheets(report, workbook, new ExcelSheetWriter_TagReport());
     createSheets(report, workbook, new ExcelSheetWriter_DetailedTagReport(dateStyle));
     createSheets(report, workbook, new ExcelSheetWriter_ByDate(dateStyle));
-    createSheets(report, workbook, new ExcelSheetWriter_IgnoredTransactions());
-    createSheets(report, workbook, new ExcelSheetWriter_AllTags());
 
     autoSizeAllColumnsOnAllSheets(workbook);
 

@@ -33,7 +33,10 @@ public class Transaction {
   @Key
   private Counterparty counterparty;
 
-  public Transaction(String id, int amount, String currency, String created, String notes, Merchant merchant, String description, Counterparty counterparty) {
+  @Key("decline_reason")
+  private String declineReason;
+
+  public Transaction(String id, int amount, String currency, String created, String notes, Merchant merchant, String description, Counterparty counterparty, String declineReason) {
     this.id = id;
     this.amount = amount;
     this.currency = currency;
@@ -42,6 +45,7 @@ public class Transaction {
     this.merchant = merchant;
     this.description = description;
     this.counterparty = counterparty;
+    this.declineReason = declineReason;
   }
 
   public Transaction() {
@@ -79,6 +83,10 @@ public class Transaction {
     return counterparty;
   }
 
+  public boolean isDeclined() {
+    return declineReason != null;
+  }
+
   @Override
   public String toString() {
     return "Transaction{" +
@@ -89,7 +97,8 @@ public class Transaction {
         ", notes='" + notes + '\'' +
         ", merchant=" + merchant +
         ", description='" + description + '\'' +
-        ", counterparty=" + counterparty +
+        ", counterparty=" + counterparty +'\'' +
+        ", declineReason=" + declineReason +
         '}';
   }
 }

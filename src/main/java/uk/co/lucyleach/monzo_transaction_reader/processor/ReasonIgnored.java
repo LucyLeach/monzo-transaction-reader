@@ -9,7 +9,8 @@ public enum ReasonIgnored {
   ZERO_TRANSACTION("Zero transaction"),
   IGNORE_TAG("Tagged with #Ignore"),
   UNCONFIGURED_POT("Unconfigured pot"),
-  NON_GBP("Not in GBP");
+  NON_GBP("Not in GBP"),
+  DECLINED("Declined transaction");
 
   private final String humanString;
 

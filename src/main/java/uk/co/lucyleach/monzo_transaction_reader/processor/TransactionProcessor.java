@@ -42,6 +42,8 @@ public class TransactionProcessor {
       return createIgnoredResult(original, ReasonIgnored.ZERO_TRANSACTION);
     } else if(!GBP.equals(original.getCurrency())) {
       return createIgnoredResult(original, ReasonIgnored.NON_GBP);
+    } else if(original.isDeclined()) {
+      return createIgnoredResult(original, ReasonIgnored.DECLINED);
     } else if(isSaleTransaction(original)) {
       return processSaleTransaction(original, clientDetails);
     } else if(isPotTransaction(original)) {

@@ -2,7 +2,6 @@ package uk.co.lucyleach.monzo_transaction_reader.processor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.junit.Ignore;
 import org.junit.Test;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Counterparty;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Merchant;
@@ -33,7 +32,6 @@ import static uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProc
  * Date: 05/08/2018
  * Time: 20:37
  */
-@Ignore
 public class TransactionProcessorTest {
   private static final TransactionProcessor UNDER_TEST = new TransactionProcessor();
 
@@ -104,7 +102,7 @@ public class TransactionProcessorTest {
     var originalTransaction = expectedSuccessfulResult.getOriginalTransaction();
     var notesWithoutHashes = originalTransaction.getNotes().replace("#", "");
     var inputWithoutHashes = new Transaction(originalTransaction.getId(), originalTransaction.getAmount(), originalTransaction.getCurrency(),
-        originalTransaction.getCreated(), notesWithoutHashes, originalTransaction.getMerchant(), originalTransaction.getDescription(), emptyCounterparty());
+        originalTransaction.getCreated(), notesWithoutHashes, originalTransaction.getMerchant(), originalTransaction.getDescription(), emptyCounterparty(), null);
     var expectedSuccessfulResultWoHashes = new InputAndOutputTransactions(inputWithoutHashes, expectedSuccessfulResult.getProcessedTransactions());
 
     var result = UNDER_TEST.process(new TransactionList(inputWithoutHashes), ClientProcessingDetails.builder().build());
@@ -139,7 +137,7 @@ public class TransactionProcessorTest {
   public void testSaleTransactionDefaultTag() {
     var merchantName = "Merchant Name";
     var defaultTag = "DefaultTag";
-    var saleTransaction = new Transaction("No tag", -100, "GBP", "2018-02-01T08:00:00.0Z", "", new Merchant(merchantName), "Description", emptyCounterparty());
+    var saleTransaction = new Transaction("No tag", -100, "GBP", "2018-02-01T08:00:00.0Z", "", new Merchant(merchantName), "Description", emptyCounterparty(), null);
     var expectedOutputTransaction = new SaleTransaction("No tag", ZonedDateTime.of(2018, 2, 1, 8, 0, 0, 0, ZoneId.of("UTC")),
         new Money(-100, "GBP"), merchantName, defaultTag);
     var clientDetails = ClientProcessingDetails.builder()
@@ -158,7 +156,7 @@ public class TransactionProcessorTest {
   public void testSaleTransactionCantOverrideTagWithDefault() {
     var merchantName = "Merchant Name";
     var defaultTag = "DefaultTag";
-    var saleTransaction = new Transaction("Can't override tag", -100, "GBP", "2018-02-01T08:00:00.0Z", "#ExistingTag", new Merchant(merchantName), "Description", emptyCounterparty());
+    var saleTransaction = new Transaction("Can't override tag", -100, "GBP", "2018-02-01T08:00:00.0Z", "#ExistingTag", new Merchant(merchantName), "Description", emptyCounterparty(), null);
     var expectedOutputTransaction = new SaleTransaction("Can't override tag", ZonedDateTime.of(2018, 2, 1, 8, 0, 0, 0, ZoneId.of("UTC")),
         new Money(-100, "GBP"), merchantName, "ExistingTag");
     var clientDetails = ClientProcessingDetails.builder()
@@ -261,10 +259,10 @@ public class TransactionProcessorTest {
 
     var potId = POT_PREFIX + "Ignore Tag";
     var dateString = "2018-01-07T08:00:00.0Z";
-    var ignorePotInTransaction = new Transaction(potId + " in", 5631, "GBP", dateString, IGNORE_TAG, null, potId, emptyCounterparty());
-    var ignorePotOutTransaction = new Transaction(potId + " out", -5631, "GBP", dateString, IGNORE_TAG, null, potId, emptyCounterparty());
-    var ignoreTransferIn = new Transaction("Transfer in with ignore", 7312, "GBP", dateString, IGNORE_TAG, null, "Description", new Counterparty(123, 456));
-    var ignoreTransferOut = new Transaction("Transfer out with ignore", -7312, "GBP", dateString, IGNORE_TAG, null, "Description", new Counterparty(123, 456));
+    var ignorePotInTransaction = new Transaction(potId + " in", 5631, "GBP", dateString, IGNORE_TAG, null, potId, emptyCounterparty(), null);
+    var ignorePotOutTransaction = new Transaction(potId + " out", -5631, "GBP", dateString, IGNORE_TAG, null, potId, emptyCounterparty(), null);
+    var ignoreTransferIn = new Transaction("Transfer in with ignore", 7312, "GBP", dateString, IGNORE_TAG, null, "Description", new Counterparty(123, 456), null);
+    var ignoreTransferOut = new Transaction("Transfer out with ignore", -7312, "GBP", dateString, IGNORE_TAG, null, "Description", new Counterparty(123, 456), null);
     var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseIn(Map.of(potId, "MappedTagIn")).addPotsToRecogniseOut(Map.of(potId, "MappedTagOut")).build();
 
     var result = UNDER_TEST.process(new TransactionList(justIgnoreTag, ignoreTagMiddle, ignoreTagUpperCase, ignorePotInTransaction, ignorePotOutTransaction, ignoreTransferIn, ignoreTransferOut), clientDetails);
@@ -277,8 +275,8 @@ public class TransactionProcessorTest {
 
   @Test
   public void testIgnoreTagInDefaults() {
-    var saleTransaction = new Transaction("No tag sale", 345, "GBP", "2018-01-07T08:00:00.0Z", "", new Merchant("MerchantName"), "Desc", new Counterparty());
-    var transferTransaction = new Transaction("No tag transfer", 234, "GBP", "2018-01-07T08:00:00.0Z", "", new Merchant(), "Description", new Counterparty(321, 543));
+    var saleTransaction = new Transaction("No tag sale", 345, "GBP", "2018-01-07T08:00:00.0Z", "", new Merchant("MerchantName"), "Desc", new Counterparty(), null);
+    var transferTransaction = new Transaction("No tag transfer", 234, "GBP", "2018-01-07T08:00:00.0Z", "", new Merchant(), "Description", new Counterparty(321, 543), null);
     var clientDetails = ClientProcessingDetails.builder().addAutoTagMerchant("MerchantName", "#Ignore").addAutoTagAccount("321/543", "#Ignore").build();
 
     var result = UNDER_TEST.process(new TransactionList(saleTransaction, transferTransaction), clientDetails);
@@ -293,9 +291,9 @@ public class TransactionProcessorTest {
   public void testTransfersUnreadableTag() {
     var dateString = "2018-01-10T10:00:00.0Z";
     var transferIn = new Transaction("Unreadable tag - transfer in", 4320, "GBP", dateString, "Unreadable tag",
-        null, "Description", new Counterparty(234, 789));
+        null, "Description", new Counterparty(234, 789), null);
     var transferOut = new Transaction("Unreadable tag - transfer out", -4320, "GBP", dateString, "Unreadable tag",
-        null, "Description", new Counterparty(234, 789));
+        null, "Description", new Counterparty(234, 789), null);
 
     var result = UNDER_TEST.process(new TransactionList(transferIn, transferOut), ClientProcessingDetails.builder().build());
 
@@ -333,7 +331,7 @@ public class TransactionProcessorTest {
 
   @Test
   public void testNonGbp() {
-    var nonGbpTransaction = new Transaction("Non GBP", 987, "USD", "2018-01-11T10:00:00.0Z", "Notes", new Merchant(), "Description", new Counterparty());
+    var nonGbpTransaction = new Transaction("Non GBP", 987, "USD", "2018-01-11T10:00:00.0Z", "Notes", new Merchant(), "Description", new Counterparty(), null);
 
     var result = UNDER_TEST.process(new TransactionList(nonGbpTransaction), ClientProcessingDetails.builder().build());
 
@@ -350,7 +348,7 @@ public class TransactionProcessorTest {
     var defaultTag = "DefaultTag";
     var clientDetails = ClientProcessingDetails.builder().addAutoTagAccount(accountNumber + "/" + sortCode, "#" + defaultTag).build();
     var originalTransaction = new Transaction("No tag", 10000, "GBP", "2018-02-03T08:00:00.0Z", "", new Merchant(),
-        "Description", new Counterparty(accountNumber, sortCode));
+        "Description", new Counterparty(accountNumber, sortCode), null);
     var expectedTransaction = new TransferTransaction("No tag", ZonedDateTime.of(2018, 2, 3, 8, 0, 0, 0, ZoneId.of("UTC")),
         new Money(10000, "GBP"), accountNumber + "/" + sortCode + " - Description", defaultTag);
 
@@ -369,7 +367,7 @@ public class TransactionProcessorTest {
     var defaultTag = "DefaultTag";
     var clientDetails = ClientProcessingDetails.builder().addAutoTagAccount(accountNumber + "/" + sortCode, "#" + defaultTag).build();
     var originalTransaction = new Transaction("Tag to override", 10000, "GBP", "2018-02-03T08:00:00.0Z", "#TagToOverride", new Merchant(),
-        "Description", new Counterparty(accountNumber, sortCode));
+        "Description", new Counterparty(accountNumber, sortCode), null);
     var expectedTransaction = new TransferTransaction("Tag to override", ZonedDateTime.of(2018, 2, 3, 8, 0, 0, 0, ZoneId.of("UTC")),
         new Money(10000, "GBP"), accountNumber + "/" + sortCode + " - Description", defaultTag);
 
@@ -388,7 +386,7 @@ public class TransactionProcessorTest {
     var defaultTag = "DefaultTag";
     var clientDetails = ClientProcessingDetails.builder().addAutoTagAccount(accountNumber + "/" + sortCode, "#" + defaultTag).build();
     var originalTransaction = new Transaction("Don't override Ignore tag", 10000, "GBP", "2018-02-03T08:00:00.0Z", IGNORE_TAG, new Merchant(),
-        "Description", new Counterparty(accountNumber, sortCode));
+        "Description", new Counterparty(accountNumber, sortCode), null);
 
     var result = UNDER_TEST.process(new TransactionList(originalTransaction), clientDetails);
 
@@ -401,7 +399,7 @@ public class TransactionProcessorTest {
   @Test
   public void testUnimplementedTransactionTypes() {
     var dateString = "2018-01-03T08:00:00.0Z";
-    var missingAllDetails = new Transaction("Bank transfer in", 420, "GBP", dateString, "Notes", null, "Description", emptyCounterparty());
+    var missingAllDetails = new Transaction("Bank transfer in", 420, "GBP", dateString, "Notes", null, "Description", emptyCounterparty(), null);
 
     var result = UNDER_TEST.process(new TransactionList(missingAllDetails), ClientProcessingDetails.builder().build());
 
@@ -409,6 +407,19 @@ public class TransactionProcessorTest {
     checkNoSuccessfulResults(result);
     checkForUnsuccessfulResults(Set.of(missingAllDetails), result);
     checkNoIgnoredTransactions(result);
+  }
+
+  @Test
+  public void testIgnoreDeclinedTransaction() {
+    var dateString = "2018-01-29T08:00:00.0Z";
+    var declinedTransaction = new Transaction("Declined transaction", -531, "GBP", dateString, "", new Merchant("Merchant"), "", emptyCounterparty(), "Declined");
+
+    var result = UNDER_TEST.process(new TransactionList(declinedTransaction), ClientProcessingDetails.builder().build());
+
+    checkForNulls(result);
+    checkNoSuccessfulResults(result);
+    checkNoUnsuccessfulResults(result);
+    checkIgnoredTransactions(result, ReasonIgnored.DECLINED, declinedTransaction);
   }
 
   private static void checkForUnsuccessfulResults(Set<Transaction> inputSet, TransactionProcessorResult result) {
@@ -419,7 +430,7 @@ public class TransactionProcessorTest {
 
   private static Transaction createSimpleSaleTransaction(String testName, String notes, int totalAmount) {
     var dateString = "2018-01-02T08:00:00.0Z";
-    return new Transaction(testName, totalAmount, "GBP", dateString, notes, new Merchant("A Merchant"), "Description", emptyCounterparty());
+    return new Transaction(testName, totalAmount, "GBP", dateString, notes, new Merchant("A Merchant"), "Description", emptyCounterparty(), null);
   }
 
   private static void checkNoUnsuccessfulResults(TransactionProcessorResult result) {
@@ -484,7 +495,7 @@ public class TransactionProcessorTest {
     restAmount.ifPresent(amount -> allTagsAndAmounts.put("RestTag", amount));
     var totalAmount = -100 * allTagsAndAmounts.values().stream().mapToInt(Integer::intValue).sum();
 
-    var inputTransaction = new Transaction(id, totalAmount, currency, dateString, notes, merchant, description, emptyCounterparty());
+    var inputTransaction = new Transaction(id, totalAmount, currency, dateString, notes, merchant, description, emptyCounterparty(), null);
     var outputTransactions = allTagsAndAmounts.entrySet().stream()
         .map(tagAndAmount -> new SaleTransaction(id, date, new Money(-100 * tagAndAmount.getValue(), currency), merchantName, tagAndAmount.getKey()))
         .collect(toList());
@@ -501,7 +512,7 @@ public class TransactionProcessorTest {
     var date = ZonedDateTime.of(2018, 1, 4, 8, 0, 0, 0, ZoneId.of("UTC"));
     var inOrOut = isIn ? "in" : "out";
     var transactionId = "Pot transfer " + inOrOut;
-    var inputTransaction = new Transaction(transactionId, amount, "GBP", dateString, "Notes", new Merchant(), potId, emptyCounterparty());
+    var inputTransaction = new Transaction(transactionId, amount, "GBP", dateString, "Notes", new Merchant(), potId, emptyCounterparty(), null);
     var processedTransaction = new TransferTransaction(transactionId, date, new Money(amount, "GBP"), potId, tag);
     return new InputAndOutputTransactions(inputTransaction, Set.of(processedTransaction));
   }
@@ -514,7 +525,7 @@ public class TransactionProcessorTest {
     var transactionId = testName + (isIn ? " in" : " out");
     var counterparty = new Counterparty(123, 456);
     var description = "Description";
-    var inputTransaction = new Transaction(transactionId, totalAmount, "GBP", dateString, notes, new Merchant(), description, counterparty);
+    var inputTransaction = new Transaction(transactionId, totalAmount, "GBP", dateString, notes, new Merchant(), description, counterparty, null);
     var expectedWhere = counterparty.getAccountId() + " - " + description;
     var processedTransactions = tagsAndAmounts.entrySet().stream()
         .map(e -> new TransferTransaction(transactionId, date, new Money(isIn ? convertToPence(e.getValue()) : -1 * convertToPence(e.getValue()), "GBP"), expectedWhere, e.getKey()))
