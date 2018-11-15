@@ -18,7 +18,7 @@ import java.util.function.Consumer;
  * Date: 14/09/2018
  * Time: 21:41
  */
-public class ExcelSheetWriter_ByDate extends ExcelSheetWriter_FromSplitReports<Map.Entry<LocalDate, Money>> {
+public class ExcelSheetWriter_ByDate extends ExcelSheetWriter_FromMonthlyReports<Map.Entry<LocalDate, Money>> {
   private final CellStyle dateStyle;
 
   public ExcelSheetWriter_ByDate(CellStyle dateStyle) {
@@ -31,8 +31,8 @@ public class ExcelSheetWriter_ByDate extends ExcelSheetWriter_FromSplitReports<M
   }
 
   @Override
-  List<Map.Entry<LocalDate, Money>> getObjectsFromSplitReport(MonthlyTransactionReport splitReport) {
-    return List.copyOf(splitReport.getExpenditureByDate().entrySet());
+  List<Map.Entry<LocalDate, Money>> getObjectsFromMonthlyReport(MonthlyTransactionReport monthlyReport) {
+    return List.copyOf(monthlyReport.getExpenditureByDate().entrySet());
   }
 
   @Override

@@ -9,6 +9,7 @@ import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransactio
 import uk.co.lucyleach.monzo_transaction_reader.processor.ReasonIgnored;
 import uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProcessorResult;
 
+import java.time.Month;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -24,41 +25,83 @@ import static java.util.stream.Collectors.toSet;
  * Time: 21:39
  */
 public class ReportCreator {
+  private static final String INCOME_TAG = "income";
+
   public TransactionReport create(TransactionProcessorResult result, Map<String, String> tagClassifications) {
-    var splitReports = splitAndCreateReports(result, tagClassifications);
+    var monthlyReportsByLabel = splitAndCreateReports(result, tagClassifications);
     var ignoredTransactionReports = createIgnoredTransactionsReports(result);
-    return new TransactionReport(splitReports, ignoredTransactionReports);
+    return new TransactionReport(monthlyReportsByLabel, ignoredTransactionReports);
   }
 
-  private List<MonthlyTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult, Map<String, String> tagClassifications) {
+  private Map<String, MonthlyTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult, Map<String, String> tagClassifications) {
     var transactionsSortedByDate = processorResult.getSuccessfulResults().values().stream()
         .flatMap(Collection::stream)
         .sorted(comparing(ProcessedTransaction::getDateTime))
         .collect(toList());
 
     if(transactionsSortedByDate.isEmpty()) {
-      return List.of();
+      return Map.of();
     }
 
     var transactionsToSplitOn = transactionsSortedByDate.stream()
-        .filter(t -> t.getTag().equalsIgnoreCase("income"))
+        .filter(t -> {
+          return t.getTag().equalsIgnoreCase(INCOME_TAG);
+        })
         .filter(t -> t.getAmount().getAmountInPence() > 20000)
         .collect(toSet());
 
     var transactionsForThisPeriod = new ArrayList<ProcessedTransaction>();
-    var splitReports = new ArrayList<MonthlyTransactionReport>();
+    var monthlyReports = new ArrayList<MonthlyTransactionReport>();
     for(var transaction: transactionsSortedByDate) {
       if(transactionsToSplitOn.contains(transaction)) {
         if(!transactionsForThisPeriod.isEmpty()) {
-          splitReports.add(createSplitTransactionReport(transactionsForThisPeriod, tagClassifications));
+          monthlyReports.add(createMonthlyTransactionReport(transactionsForThisPeriod, tagClassifications));
           transactionsForThisPeriod = new ArrayList<>();
         }
       }
       transactionsForThisPeriod.add(transaction);
     }
-    splitReports.add(createSplitTransactionReport(transactionsForThisPeriod, tagClassifications));
+    monthlyReports.add(createMonthlyTransactionReport(transactionsForThisPeriod, tagClassifications));
 
-    return splitReports;
+    return labelMonthlyReports(monthlyReports);
+  }
+
+  private Map<String, MonthlyTransactionReport> labelMonthlyReports(List<MonthlyTransactionReport> originalMonthlyReports) {
+    var monthlyReportsToLabel = reportsWithoutInitialStub(originalMonthlyReports);
+
+    //Try to label by month, but if the previous label was the month then add an extra number for uniqueness
+    Month previousMonth = null;
+    var extraNumLabel = 0;
+    var monthlyReportsByLabel = new LinkedHashMap<String, MonthlyTransactionReport>();
+    for(var monthlyReport: monthlyReportsToLabel) {
+      var thisReportMonth = monthlyReport.getEarliestTransaction().plusDays(5).getMonth();
+      if(thisReportMonth.equals(previousMonth)) {
+        extraNumLabel += 1;
+        var label = thisReportMonth.name().substring(0, 3) + "_" + extraNumLabel;
+        monthlyReportsByLabel.put(label, monthlyReport);
+      } else {
+        var label = thisReportMonth.name().substring(0, 3);
+        monthlyReportsByLabel.put(label, monthlyReport);
+        extraNumLabel = 0;
+        previousMonth = thisReportMonth;
+      }
+    }
+
+    return monthlyReportsByLabel;
+  }
+
+  private List<MonthlyTransactionReport> reportsWithoutInitialStub(List<MonthlyTransactionReport> monthlyReports) {
+    if(monthlyReports.size() > 1 && !startsWithIncomeTransaction(monthlyReports.get(0))) {
+      var mutableList = new ArrayList<>(monthlyReports);
+      mutableList.remove(0);
+      return mutableList;
+    } else {
+      return monthlyReports;
+    }
+  }
+
+  private boolean startsWithIncomeTransaction(MonthlyTransactionReport monthlyReport) {
+    return monthlyReport.getTransactions().get(0).getTag().equalsIgnoreCase(INCOME_TAG);
   }
 
   private List<IgnoredTransactionsReport> createIgnoredTransactionsReports(TransactionProcessorResult result) {
@@ -70,7 +113,7 @@ public class ReportCreator {
         .collect(toList());
   }
 
-  private MonthlyTransactionReport createSplitTransactionReport(List<ProcessedTransaction> processedTransactionsSortedByDate, Map<String, String> tagClassifications) {
+  private MonthlyTransactionReport createMonthlyTransactionReport(List<ProcessedTransaction> processedTransactionsSortedByDate, Map<String, String> tagClassifications) {
     var tagMap = processedTransactionsSortedByDate.stream().collect(Collectors.groupingBy(ProcessedTransaction::getTag));
     var tagReports = tagMap.entrySet().stream()
         .map(e -> createTagLevelReport(e, tagClassifications))

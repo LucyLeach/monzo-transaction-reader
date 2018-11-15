@@ -14,15 +14,15 @@ import java.util.function.Consumer;
  * Date: 14/09/2018
  * Time: 21:29
  */
-public class ExcelSheetWriter_TagReport extends ExcelSheetWriter_FromSplitReports<TagLevelReport> {
+public class ExcelSheetWriter_TagReport extends ExcelSheetWriter_FromMonthlyReports<TagLevelReport> {
   @Override
   String getSheetName() {
     return "Tag_Report";
   }
 
   @Override
-  List<TagLevelReport> getObjectsFromSplitReport(MonthlyTransactionReport splitReport) {
-    var tagReports = new ArrayList<>(splitReport.getTagReports());
+  List<TagLevelReport> getObjectsFromMonthlyReport(MonthlyTransactionReport monthlyReport) {
+    var tagReports = new ArrayList<>(monthlyReport.getTagReports());
     tagReports.sort(ExcelSheetWriter_TagReport::orderReports);
     return tagReports;
   }
@@ -30,9 +30,9 @@ public class ExcelSheetWriter_TagReport extends ExcelSheetWriter_FromSplitReport
   private static int orderReports(TagLevelReport o1, TagLevelReport o2) {
     if(o1.getTag().equals(o2.getTag())) {
       return 0;
-    } else if("Income".equals(o1.getTag())) {
+    } else if("income".equalsIgnoreCase(o1.getTag())) {
       return -1;
-    } else if("Income".equals(o2.getTag())) {
+    } else if("income".equalsIgnoreCase(o2.getTag())) {
       return 1;
     } else {
       return o1.getTotalAmount().compareTo(o2.getTotalAmount());

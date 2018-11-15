@@ -16,7 +16,7 @@ import java.util.stream.IntStream;
  * Date: 14/09/2018
  * Time: 21:30
  */
-public class ExcelSheetWriter_DetailedTagReport extends ExcelSheetWriter_FromSplitReports<TagLevelReport> {
+public class ExcelSheetWriter_DetailedTagReport extends ExcelSheetWriter_FromMonthlyReports<TagLevelReport> {
   private final CellStyle dateStyle;
 
   public ExcelSheetWriter_DetailedTagReport(CellStyle dateStyle) {
@@ -29,8 +29,8 @@ public class ExcelSheetWriter_DetailedTagReport extends ExcelSheetWriter_FromSpl
   }
 
   @Override
-  List<TagLevelReport> getObjectsFromSplitReport(MonthlyTransactionReport splitReport) {
-    return splitReport.getTagReports();
+  List<TagLevelReport> getObjectsFromMonthlyReport(MonthlyTransactionReport monthlyReport) {
+    return monthlyReport.getTagReports();
   }
 
   @Override

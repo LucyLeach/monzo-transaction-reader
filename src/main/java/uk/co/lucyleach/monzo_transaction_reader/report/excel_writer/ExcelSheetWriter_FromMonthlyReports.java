@@ -14,14 +14,14 @@ import static java.util.stream.Collectors.toMap;
  * Date: 16/09/2018
  * Time: 13:39
  */
-public abstract class ExcelSheetWriter_FromSplitReports<R> implements ExcelSheetWriter<R> {
+public abstract class ExcelSheetWriter_FromMonthlyReports<R> implements ExcelSheetWriter<R> {
   @Override
   public Map<String, List<R>> getObjectsToWritePerSheet(TransactionReport report) {
     return report.getMonthlyReportsByLabel().entrySet().stream()
-        .collect(toMap(e -> getSheetName() + "_" + e.getKey(), e -> getObjectsFromSplitReport(e.getValue()), (r1,r2) -> r2, LinkedHashMap::new));
+        .collect(toMap(e -> getSheetName() + "_" + e.getKey(), e -> getObjectsFromMonthlyReport(e.getValue()), (r1, r2) -> r2, LinkedHashMap::new));
   }
 
   abstract String getSheetName();
 
-  abstract List<R> getObjectsFromSplitReport(MonthlyTransactionReport splitReport);
+  abstract List<R> getObjectsFromMonthlyReport(MonthlyTransactionReport monthlyReport);
 }
