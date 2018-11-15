@@ -27,13 +27,13 @@ import static java.util.stream.Collectors.toSet;
 public class ReportCreator {
   private static final String INCOME_TAG = "income";
 
-  public TransactionReport create(TransactionProcessorResult result, Map<String, String> tagClassifications) {
-    var monthlyReportsByLabel = splitAndCreateReports(result, tagClassifications);
+  public TransactionReport create(TransactionProcessorResult result, Map<String, String> tagCategories) {
+    var monthlyReportsByLabel = splitAndCreateReports(result, tagCategories);
     var ignoredTransactionReports = createIgnoredTransactionsReports(result);
     return new TransactionReport(monthlyReportsByLabel, ignoredTransactionReports);
   }
 
-  private Map<String, MonthlyTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult, Map<String, String> tagClassifications) {
+  private Map<String, MonthlyTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult, Map<String, String> tagCategories) {
     var transactionsSortedByDate = processorResult.getSuccessfulResults().values().stream()
         .flatMap(Collection::stream)
         .sorted(comparing(ProcessedTransaction::getDateTime))
@@ -53,13 +53,13 @@ public class ReportCreator {
     for(var transaction: transactionsSortedByDate) {
       if(transactionsToSplitOn.contains(transaction)) {
         if(!transactionsForThisPeriod.isEmpty()) {
-          monthlyReports.add(createMonthlyTransactionReport(transactionsForThisPeriod, tagClassifications));
+          monthlyReports.add(createMonthlyTransactionReport(transactionsForThisPeriod, tagCategories));
           transactionsForThisPeriod = new ArrayList<>();
         }
       }
       transactionsForThisPeriod.add(transaction);
     }
-    monthlyReports.add(createMonthlyTransactionReport(transactionsForThisPeriod, tagClassifications));
+    monthlyReports.add(createMonthlyTransactionReport(transactionsForThisPeriod, tagCategories));
 
     return labelMonthlyReports(monthlyReports);
   }
@@ -111,10 +111,10 @@ public class ReportCreator {
         .collect(toList());
   }
 
-  private MonthlyTransactionReport createMonthlyTransactionReport(List<ProcessedTransaction> processedTransactionsSortedByDate, Map<String, String> tagClassifications) {
+  private MonthlyTransactionReport createMonthlyTransactionReport(List<ProcessedTransaction> processedTransactionsSortedByDate, Map<String, String> tagCategories) {
     var tagMap = processedTransactionsSortedByDate.stream().collect(Collectors.groupingBy(ProcessedTransaction::getTag));
     var tagReports = tagMap.entrySet().stream()
-        .map(e -> createTagLevelReport(e, tagClassifications))
+        .map(e -> createTagLevelReport(e, tagCategories))
         .sorted(comparing(TagLevelReport::getTag))
         .collect(toList());
 
@@ -147,9 +147,9 @@ public class ReportCreator {
     return new IgnoredTransactionsReport(reason, new Money(amountIn, gbp), new Money(amountOut, gbp), sortedTransactions);
   }
 
-  private static TagLevelReport createTagLevelReport(Map.Entry<String, List<ProcessedTransaction>> tagMapEntry, Map<String, String> tagClassifications) {
+  private static TagLevelReport createTagLevelReport(Map.Entry<String, List<ProcessedTransaction>> tagMapEntry, Map<String, String> tagCategories) {
     var tag = tagMapEntry.getKey();
-    var tagClassification = tagClassifications.get(tag);
+    var tagCategory = tagCategories.get(tag);
     var transactions = tagMapEntry.getValue();
 
     var sortedTransactions = transactions.stream().sorted(comparing(ProcessedTransaction::getDateTime)).collect(toList());
@@ -157,7 +157,7 @@ public class ReportCreator {
     var amountIn = sumTransactionsWithFilter(transactions, ProcessedTransaction::isPositive);
     var amountOut = sumTransactionsWithFilter(transactions, ProcessedTransaction::isNegative);
 
-    return new TagLevelReport(tag, tagClassification, amountIn, amountOut, sortedTransactions);
+    return new TagLevelReport(tag, tagCategory, amountIn, amountOut, sortedTransactions);
   }
 
   private static Money sumTransactions(Collection<ProcessedTransaction> transactions) {

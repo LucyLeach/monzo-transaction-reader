@@ -20,11 +20,11 @@ public class TransactionReport {
     this.ignoredTransactionsReports = List.copyOf(ignoredTransactionsReports);
   }
 
-  public List<Pair<String, String>> getAllTagsSortedWithClassification() {
+  public List<Pair<String, String>> getAllTagsSortedWithCategories() {
     return monthlyReportsByLabel.values().stream()
         .map(MonthlyTransactionReport::getTagReports)
         .flatMap(Collection::stream)
-        .map(r -> new Pair<>(r.getTag(), r.getTagClassification()))
+        .map(r -> new Pair<>(r.getTag(), r.getTagCategory()))
         .distinct()
         .sorted(Comparator.comparing(Pair::getA))
         .collect(toList());
@@ -41,7 +41,7 @@ public class TransactionReport {
   public List<CategoryReport> getCategoryReports() {
     var allCategories = monthlyReportsByLabel.values().stream()
         .flatMap(sr -> sr.getTagReports().stream())
-        .map(TagLevelReport::getTagClassification)
+        .map(TagLevelReport::getTagCategory)
         .filter(Objects::nonNull)
         .distinct()
         .sorted()
@@ -51,7 +51,7 @@ public class TransactionReport {
       var amountBySplit = new ArrayList<Double>();
       for(var monthlyReport: monthlyReportsByLabel.values()) {
         var amount = monthlyReport.getTagReports().stream()
-            .filter(tr -> category.equals(tr.getTagClassification()))
+            .filter(tr -> category.equals(tr.getTagCategory()))
             .mapToDouble(tr -> tr.getTotalAmount().getAmountInPounds().doubleValue())
             .sum();
         amountBySplit.add(amount);

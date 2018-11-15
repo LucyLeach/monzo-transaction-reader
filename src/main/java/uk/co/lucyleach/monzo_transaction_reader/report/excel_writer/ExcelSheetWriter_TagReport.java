@@ -41,14 +41,14 @@ public class ExcelSheetWriter_TagReport extends ExcelSheetWriter_FromMonthlyRepo
 
   @Override
   public String[] getTitles(TransactionReport report) {
-    return new String[]{"Classification", "Tag Name", "Total In", "Total Out", "Num Transactions"};
+    return new String[]{"Category", "Tag Name", "Total In", "Total Out", "Num Transactions"};
   }
 
   @Override
   public Consumer<TagLevelReport> objectWriter(Sheet sheet) {
     return report -> {
       var row = sheet.createRow(sheet.getPhysicalNumberOfRows());
-      row.createCell(0).setCellValue(report.getTagClassification());
+      row.createCell(0).setCellValue(report.getTagCategory());
       row.createCell(1).setCellValue(report.getTag());
       row.createCell(2).setCellValue(report.getTotalAmountIn().getAmountInPounds().doubleValue());
       row.createCell(3).setCellValue(report.getTotalAmountOut().getAmountInPounds().doubleValue());

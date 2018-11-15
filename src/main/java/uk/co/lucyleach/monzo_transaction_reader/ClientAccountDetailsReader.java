@@ -28,8 +28,8 @@ class ClientAccountDetailsReader {
     var autoTagMerchants = readMap("merchants_to_auto_tag", properties, filePath);
     var autoTagAccounts = readMap("accounts_to_auto_tag", properties, filePath);
     var tagsToReplace = readMap("tags_to_replace", properties, filePath);
-    var tagClassification = invertMultimap(readMultimap("tag_classification", properties, filePath));
-    return new ClientAccountDetails(clientId, clientSecret, accountId, potsToRecogniseIn, potsToRecogniseOut, autoTagMerchants, autoTagAccounts, tagsToReplace, tagClassification);
+    var tagCategories = invertMultimap(readMultimap("tag_categories", properties, filePath));
+    return new ClientAccountDetails(clientId, clientSecret, accountId, potsToRecogniseIn, potsToRecogniseOut, autoTagMerchants, autoTagAccounts, tagsToReplace, tagCategories);
   }
 
   private String readNonNullProperty(String propertyName, Properties properties, String filePath) throws IOException {

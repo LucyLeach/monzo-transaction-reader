@@ -16,12 +16,12 @@ import java.util.function.Consumer;
 public class ExcelSheetWriter_AllTags implements ExcelSheetWriter<Pair<String, String>> {
   @Override
   public Map<String, List<Pair<String, String>>> getObjectsToWritePerSheet(TransactionReport report) {
-    return Map.of("All_Tags", report.getAllTagsSortedWithClassification());
+    return Map.of("All_Tags", report.getAllTagsSortedWithCategories());
   }
 
   @Override
   public String[] getTitles(TransactionReport report) {
-    return new String[]{"Tag", "Classification"};
+    return new String[]{"Tag", "Category"};
   }
 
   @Override

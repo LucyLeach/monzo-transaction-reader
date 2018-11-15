@@ -48,7 +48,7 @@ public class MonzoTransactionReaderRunner {
     var clientProcessingDetails = ClientProcessingDetails.builder().fromAccountDetails(props).build();
     var processorResult = transactionProcessor.process(transactionList, clientProcessingDetails);
     if(processorResult.getUnsuccessfulResults().isEmpty()) {
-      var report = reportCreator.create(processorResult, props.getTagClassifications());
+      var report = reportCreator.create(processorResult, props.getTagCategories());
       reportWriter.write(report);
     } else {
       badTransactionReportWriter.write(processorResult.getUnsuccessfulResults());
