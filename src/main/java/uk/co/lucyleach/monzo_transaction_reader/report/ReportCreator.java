@@ -8,6 +8,7 @@ import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransaction;
 import uk.co.lucyleach.monzo_transaction_reader.processor.ReasonIgnored;
 import uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProcessorResult;
+import uk.co.lucyleach.monzo_transaction_reader.utils.Pair;
 
 import java.time.Month;
 import java.util.*;
@@ -29,8 +30,43 @@ public class ReportCreator {
 
   public TransactionReport create(TransactionProcessorResult result, Map<String, String> tagCategories) {
     var monthlyReportsByLabel = splitAndCreateReports(result, tagCategories);
+    var sortedTagsWithCategories = getAllTagsSortedWithCategories(monthlyReportsByLabel.values());
+    var categoryReports = getCategoryReports(monthlyReportsByLabel.values());
     var ignoredTransactionReports = createIgnoredTransactionsReports(result);
-    return new TransactionReport(monthlyReportsByLabel, ignoredTransactionReports);
+    return new TransactionReport(monthlyReportsByLabel, sortedTagsWithCategories, categoryReports, ignoredTransactionReports);
+  }
+
+  private List<CategoryReport> getCategoryReports(Collection<MonthlyTransactionReport> monthlyReports) {
+    var allCategories = monthlyReports.stream()
+        .flatMap(sr -> sr.getTagReports().stream())
+        .map(TagLevelReport::getTagCategory)
+        .filter(Objects::nonNull)
+        .distinct()
+        .sorted()
+        .collect(toList());
+    var categoryReports = new ArrayList<CategoryReport>();
+    for(var category : allCategories) {
+      var amountBySplit = new ArrayList<Double>();
+      for(var monthlyReport : monthlyReports) {
+        var amount = monthlyReport.getTagReports().stream()
+            .filter(tr -> category.equals(tr.getTagCategory()))
+            .mapToDouble(tr -> tr.getTotalAmount().getAmountInPounds().doubleValue())
+            .sum();
+        amountBySplit.add(amount);
+      }
+      categoryReports.add(new CategoryReport(category, amountBySplit));
+    }
+    return categoryReports;
+  }
+
+  private List<Pair<String, String>> getAllTagsSortedWithCategories(Collection<MonthlyTransactionReport> monthlyReports) {
+    return monthlyReports.stream()
+        .map(MonthlyTransactionReport::getTagReports)
+        .flatMap(Collection::stream)
+        .map(r -> new Pair<>(r.getTag(), r.getTagCategory()))
+        .distinct()
+        .sorted(Comparator.comparing(Pair::getA))
+        .collect(toList());
   }
 
   private Map<String, MonthlyTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult, Map<String, String> tagCategories) {
@@ -50,7 +86,7 @@ public class ReportCreator {
 
     var transactionsForThisPeriod = new ArrayList<ProcessedTransaction>();
     var monthlyReports = new ArrayList<MonthlyTransactionReport>();
-    for(var transaction: transactionsSortedByDate) {
+    for(var transaction : transactionsSortedByDate) {
       if(transactionsToSplitOn.contains(transaction)) {
         if(!transactionsForThisPeriod.isEmpty()) {
           monthlyReports.add(createMonthlyTransactionReport(transactionsForThisPeriod, tagCategories));
@@ -71,7 +107,7 @@ public class ReportCreator {
     Month previousMonth = null;
     var extraNumLabel = 0;
     var monthlyReportsByLabel = new LinkedHashMap<String, MonthlyTransactionReport>();
-    for(var monthlyReport: monthlyReportsToLabel) {
+    for(var monthlyReport : monthlyReportsToLabel) {
       var thisReportMonth = monthlyReport.getEarliestTransaction().plusDays(5).getMonth();
       if(thisReportMonth.equals(previousMonth)) {
         extraNumLabel += 1;
@@ -161,7 +197,7 @@ public class ReportCreator {
   }
 
   private static Money sumTransactions(Collection<ProcessedTransaction> transactions) {
-    return  sumTransactionsWithFilter(transactions, always -> true);
+    return sumTransactionsWithFilter(transactions, always -> true);
   }
 
   private static Money sumTransactionsWithFilter(Collection<ProcessedTransaction> transactions, Predicate<ProcessedTransaction> predicate) {

@@ -2,9 +2,8 @@ package uk.co.lucyleach.monzo_transaction_reader.report;
 
 import uk.co.lucyleach.monzo_transaction_reader.utils.Pair;
 
-import java.util.*;
-
-import static java.util.stream.Collectors.toList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * User: Lucy
@@ -13,21 +12,21 @@ import static java.util.stream.Collectors.toList;
  */
 public class TransactionReport {
   private final Map<String, MonthlyTransactionReport> monthlyReportsByLabel;
+  private final List<Pair<String, String>> sortedTagsWithCategories;
+  private final List<CategoryReport> categoryReports;
+
   private final List<IgnoredTransactionsReport> ignoredTransactionsReports;
 
-  public TransactionReport(Map<String, MonthlyTransactionReport> monthlyReportsByLabel, List<IgnoredTransactionsReport> ignoredTransactionsReports) {
+  public TransactionReport(Map<String, MonthlyTransactionReport> monthlyReportsByLabel, List<Pair<String, String>> sortedTagsWithCategories,
+                           List<CategoryReport> categoryReports, List<IgnoredTransactionsReport> ignoredTransactionsReports) {
     this.monthlyReportsByLabel = monthlyReportsByLabel;
+    this.sortedTagsWithCategories = List.copyOf(sortedTagsWithCategories);
+    this.categoryReports = List.copyOf(categoryReports);
     this.ignoredTransactionsReports = List.copyOf(ignoredTransactionsReports);
   }
 
   public List<Pair<String, String>> getAllTagsSortedWithCategories() {
-    return monthlyReportsByLabel.values().stream()
-        .map(MonthlyTransactionReport::getTagReports)
-        .flatMap(Collection::stream)
-        .map(r -> new Pair<>(r.getTag(), r.getTagCategory()))
-        .distinct()
-        .sorted(Comparator.comparing(Pair::getA))
-        .collect(toList());
+    return sortedTagsWithCategories;
   }
 
   public Map<String, MonthlyTransactionReport> getMonthlyReportsByLabel() {
@@ -39,25 +38,6 @@ public class TransactionReport {
   }
 
   public List<CategoryReport> getCategoryReports() {
-    var allCategories = monthlyReportsByLabel.values().stream()
-        .flatMap(sr -> sr.getTagReports().stream())
-        .map(TagLevelReport::getTagCategory)
-        .filter(Objects::nonNull)
-        .distinct()
-        .sorted()
-        .collect(toList());
-    var categoryReports = new ArrayList<CategoryReport>();
-    for(var category: allCategories) {
-      var amountBySplit = new ArrayList<Double>();
-      for(var monthlyReport: monthlyReportsByLabel.values()) {
-        var amount = monthlyReport.getTagReports().stream()
-            .filter(tr -> category.equals(tr.getTagCategory()))
-            .mapToDouble(tr -> tr.getTotalAmount().getAmountInPounds().doubleValue())
-            .sum();
-        amountBySplit.add(amount);
-      }
-      categoryReports.add(new CategoryReport(category, amountBySplit));
-    }
     return categoryReports;
   }
 }
