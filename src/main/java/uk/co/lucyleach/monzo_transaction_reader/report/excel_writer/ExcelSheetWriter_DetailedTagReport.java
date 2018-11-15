@@ -2,7 +2,7 @@ package uk.co.lucyleach.monzo_transaction_reader.report.excel_writer;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
-import uk.co.lucyleach.monzo_transaction_reader.report.SplitTransactionReport;
+import uk.co.lucyleach.monzo_transaction_reader.report.MonthlyTransactionReport;
 import uk.co.lucyleach.monzo_transaction_reader.report.TagLevelReport;
 import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport;
 
@@ -29,7 +29,7 @@ public class ExcelSheetWriter_DetailedTagReport extends ExcelSheetWriter_FromSpl
   }
 
   @Override
-  List<TagLevelReport> getObjectsFromSplitReport(SplitTransactionReport splitReport) {
+  List<TagLevelReport> getObjectsFromSplitReport(MonthlyTransactionReport splitReport) {
     return splitReport.getTagReports();
   }
 

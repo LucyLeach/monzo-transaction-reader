@@ -3,7 +3,7 @@ package uk.co.lucyleach.monzo_transaction_reader.report.excel_writer;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
-import uk.co.lucyleach.monzo_transaction_reader.report.SplitTransactionReport;
+import uk.co.lucyleach.monzo_transaction_reader.report.MonthlyTransactionReport;
 import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport;
 
 import java.time.LocalDate;
@@ -31,7 +31,7 @@ public class ExcelSheetWriter_ByDate extends ExcelSheetWriter_FromSplitReports<M
   }
 
   @Override
-  List<Map.Entry<LocalDate, Money>> getObjectsFromSplitReport(SplitTransactionReport splitReport) {
+  List<Map.Entry<LocalDate, Money>> getObjectsFromSplitReport(MonthlyTransactionReport splitReport) {
     return List.copyOf(splitReport.getExpenditureByDate().entrySet());
   }
 

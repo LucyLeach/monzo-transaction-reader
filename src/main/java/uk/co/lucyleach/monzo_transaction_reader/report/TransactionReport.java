@@ -13,17 +13,41 @@ import static java.util.stream.Collectors.toList;
  * Time: 10:37
  */
 public class TransactionReport {
-  private final List<SplitTransactionReport> splitReports;
+  private final Map<String, MonthlyTransactionReport> monthlyReportsByLabel;
   private final List<IgnoredTransactionsReport> ignoredTransactionsReports;
 
-  public TransactionReport(List<SplitTransactionReport> splitReports, List<IgnoredTransactionsReport> ignoredTransactionsReports) {
-    this.splitReports = List.copyOf(splitReports);
+  public TransactionReport(List<MonthlyTransactionReport> splitReports, List<IgnoredTransactionsReport> ignoredTransactionsReports) {
+    this.monthlyReportsByLabel = labelMonthlyReports(List.copyOf(splitReports));
     this.ignoredTransactionsReports = List.copyOf(ignoredTransactionsReports);
   }
 
+  private Map<String, MonthlyTransactionReport> labelMonthlyReports(List<MonthlyTransactionReport> originalMonthlyReports) {
+    var monthlyReportsToLabel = reportsWithoutInitialStub(originalMonthlyReports);
+
+    //Try to label by month, but if the previous label was the month then add an extra number for uniqueness
+    Month previousMonth = null;
+    var extraNumLabel = 0;
+    var monthlyReportsByLabel = new LinkedHashMap<String, MonthlyTransactionReport>();
+    for(var splitReport: monthlyReportsToLabel) {
+      var thisReportMonth = splitReport.getEarliestTransaction().plusDays(5).getMonth();
+      if(thisReportMonth.equals(previousMonth)) {
+        extraNumLabel += 1;
+        var label = thisReportMonth.name().substring(0, 3) + "_" + extraNumLabel;
+        monthlyReportsByLabel.put(label, splitReport);
+      } else {
+        var label = thisReportMonth.name().substring(0, 3);
+        monthlyReportsByLabel.put(label, splitReport);
+        extraNumLabel = 0;
+        previousMonth = thisReportMonth;
+      }
+    }
+
+    return monthlyReportsByLabel;
+  }
+
   public List<Pair<String, String>> getAllTagsSortedWithClassification() {
-    return splitReports.stream()
-        .map(SplitTransactionReport::getTagReports)
+    return monthlyReportsByLabel.values().stream()
+        .map(MonthlyTransactionReport::getTagReports)
         .flatMap(Collection::stream)
         .map(r -> new Pair<String, String>(r.getTag(), r.getTagClassification()))
         .distinct()
@@ -31,37 +55,16 @@ public class TransactionReport {
         .collect(toList());
   }
 
+  public Map<String, MonthlyTransactionReport> getMonthlyReportsByLabel() {
+    return monthlyReportsByLabel;
+  }
+
   public List<IgnoredTransactionsReport> getIgnoredTransactionsReports() {
     return ignoredTransactionsReports;
   }
 
-  public Map<String, SplitTransactionReport> getSplitReportsByLabel(boolean removeInitialStub) {
-    var splitReportsToLabel = removeInitialStub ? reportsWithoutInitialStub() : splitReports;
-
-    //Try to label by month, but if the previous label was the month then add an extra number for uniqueness
-    Month previousMonth = null;
-    var extraNumLabel = 0;
-    var splitReportsByLabel = new LinkedHashMap<String, SplitTransactionReport>();
-    for(var splitReport: splitReportsToLabel) {
-      var thisReportMonth = splitReport.getEarliestTransaction().plusDays(5).getMonth();
-      if(thisReportMonth.equals(previousMonth)) {
-        extraNumLabel += 1;
-        var label = thisReportMonth.name().substring(0, 3) + "_" + extraNumLabel;
-        splitReportsByLabel.put(label, splitReport);
-      } else {
-        var label = thisReportMonth.name().substring(0, 3);
-        splitReportsByLabel.put(label, splitReport);
-        extraNumLabel = 0;
-        previousMonth = thisReportMonth;
-      }
-    }
-
-    return splitReportsByLabel;
-  }
-
   public List<CategoryReport> getCategoryReports() {
-    var splitReportsByLabel = getSplitReportsByLabel(true);
-    var allCategories = splitReports.stream()
+    var allCategories = monthlyReportsByLabel.values().stream()
         .flatMap(sr -> sr.getTagReports().stream())
         .map(TagLevelReport::getTagClassification)
         .filter(Objects::nonNull)
@@ -71,7 +74,7 @@ public class TransactionReport {
     var categoryReports = new ArrayList<CategoryReport>();
     for(var category: allCategories) {
       var amountBySplit = new ArrayList<Double>();
-      for(var splitReport: splitReportsByLabel.values()) {
+      for(var splitReport: monthlyReportsByLabel.values()) {
         var amount = splitReport.getTagReports().stream()
             .filter(tr -> category.equals(tr.getTagClassification()))
             .mapToDouble(tr -> tr.getTotalAmount().getAmountInPounds().doubleValue())
@@ -83,17 +86,17 @@ public class TransactionReport {
     return categoryReports;
   }
 
-  private List<SplitTransactionReport> reportsWithoutInitialStub() {
-    if(splitReports.size() > 1 && !startsWithIncomeTransaction(splitReports.get(0))) {
-      var mutableList = new ArrayList<>(splitReports);
+  private List<MonthlyTransactionReport> reportsWithoutInitialStub(List<MonthlyTransactionReport> monthlyReports) {
+    if(monthlyReports.size() > 1 && !startsWithIncomeTransaction(monthlyReports.get(0))) {
+      var mutableList = new ArrayList<>(monthlyReports);
       mutableList.remove(0);
       return mutableList;
     } else {
-      return splitReports;
+      return monthlyReports;
     }
   }
 
-  private boolean startsWithIncomeTransaction(SplitTransactionReport splitReport) {
-    return splitReport.getTransactions().get(0).getTag().equalsIgnoreCase("ignore");
+  private boolean startsWithIncomeTransaction(MonthlyTransactionReport splitReport) {
+    return splitReport.getTransactions().get(0).getTag().equalsIgnoreCase("income");
   }
 }

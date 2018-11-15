@@ -22,7 +22,7 @@ public class ExcelSheetWriter_CategoryComparison implements ExcelSheetWriter<Cat
 
   @Override
   public String[] getTitles(TransactionReport report) {
-    return ImmutableList.<String>builder().add("Categories").addAll(report.getSplitReportsByLabel(true).keySet()).build().toArray(new String[]{});
+    return ImmutableList.<String>builder().add("Categories").addAll(report.getMonthlyReportsByLabel().keySet()).build().toArray(new String[]{});
   }
 
   @Override

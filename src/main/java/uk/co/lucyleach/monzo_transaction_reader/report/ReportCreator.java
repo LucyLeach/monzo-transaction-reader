@@ -30,7 +30,7 @@ public class ReportCreator {
     return new TransactionReport(splitReports, ignoredTransactionReports);
   }
 
-  private List<SplitTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult, Map<String, String> tagClassifications) {
+  private List<MonthlyTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult, Map<String, String> tagClassifications) {
     var transactionsSortedByDate = processorResult.getSuccessfulResults().values().stream()
         .flatMap(Collection::stream)
         .sorted(comparing(ProcessedTransaction::getDateTime))
@@ -46,7 +46,7 @@ public class ReportCreator {
         .collect(toSet());
 
     var transactionsForThisPeriod = new ArrayList<ProcessedTransaction>();
-    var splitReports = new ArrayList<SplitTransactionReport>();
+    var splitReports = new ArrayList<MonthlyTransactionReport>();
     for(var transaction: transactionsSortedByDate) {
       if(transactionsToSplitOn.contains(transaction)) {
         if(!transactionsForThisPeriod.isEmpty()) {
@@ -70,7 +70,7 @@ public class ReportCreator {
         .collect(toList());
   }
 
-  private SplitTransactionReport createSplitTransactionReport(List<ProcessedTransaction> processedTransactionsSortedByDate, Map<String, String> tagClassifications) {
+  private MonthlyTransactionReport createSplitTransactionReport(List<ProcessedTransaction> processedTransactionsSortedByDate, Map<String, String> tagClassifications) {
     var tagMap = processedTransactionsSortedByDate.stream().collect(Collectors.groupingBy(ProcessedTransaction::getTag));
     var tagReports = tagMap.entrySet().stream()
         .map(e -> createTagLevelReport(e, tagClassifications))
@@ -84,7 +84,7 @@ public class ReportCreator {
     var dateToExpenditureMap = Maps.transformValues(dateToNegativeTransactionMap, ReportCreator::sumTransactions);
     var sortedDateToExpenditureMap = new TreeMap<>(dateToExpenditureMap);
 
-    return new SplitTransactionReport(processedTransactionsSortedByDate, amountIn, amountOut, tagReports, sortedDateToExpenditureMap);
+    return new MonthlyTransactionReport(processedTransactionsSortedByDate, amountIn, amountOut, tagReports, sortedDateToExpenditureMap);
   }
 
   private static Map<ReasonIgnored, Collection<Transaction>> invertMap(Map<Transaction, ReasonIgnored> originalMap) {

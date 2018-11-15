@@ -14,15 +14,16 @@ import java.util.TreeMap;
  * Date: 16/09/2018
  * Time: 10:37
  */
-public class SplitTransactionReport {
+//Rename me if Income is ever not monthly
+public class MonthlyTransactionReport {
   private final List<ProcessedTransaction> plainListOfTransactions;
   private final Money totalAmountIn;
   private final Money totalAmountOut;
   private final List<TagLevelReport> tagReports;
   private final SortedMap<LocalDate, Money> expenditureByDate;
 
-  public SplitTransactionReport(List<ProcessedTransaction> plainListOfTransactions, Money totalAmountIn, Money totalAmountOut,
-                                List<TagLevelReport> tagReports, SortedMap<LocalDate, Money> expenditureByDate) {
+  public MonthlyTransactionReport(List<ProcessedTransaction> plainListOfTransactions, Money totalAmountIn, Money totalAmountOut,
+                                  List<TagLevelReport> tagReports, SortedMap<LocalDate, Money> expenditureByDate) {
     this.plainListOfTransactions = List.copyOf(plainListOfTransactions);
     this.totalAmountIn = totalAmountIn;
     this.totalAmountOut = totalAmountOut;

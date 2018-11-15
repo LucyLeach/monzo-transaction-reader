@@ -1,7 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.report.excel_writer;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import uk.co.lucyleach.monzo_transaction_reader.report.SplitTransactionReport;
+import uk.co.lucyleach.monzo_transaction_reader.report.MonthlyTransactionReport;
 import uk.co.lucyleach.monzo_transaction_reader.report.TagLevelReport;
 import uk.co.lucyleach.monzo_transaction_reader.report.TransactionReport;
 
@@ -21,7 +21,7 @@ public class ExcelSheetWriter_TagReport extends ExcelSheetWriter_FromSplitReport
   }
 
   @Override
-  List<TagLevelReport> getObjectsFromSplitReport(SplitTransactionReport splitReport) {
+  List<TagLevelReport> getObjectsFromSplitReport(MonthlyTransactionReport splitReport) {
     var tagReports = new ArrayList<>(splitReport.getTagReports());
     tagReports.sort(ExcelSheetWriter_TagReport::orderReports);
     return tagReports;
