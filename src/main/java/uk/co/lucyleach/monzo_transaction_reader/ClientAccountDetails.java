@@ -7,7 +7,7 @@ import java.util.Map;
  * Date: 28/07/2018
  * Time: 21:17
  */
-class ClientAccountDetails {
+public class ClientAccountDetails {
   private final String clientId;
   private final String clientSecret;
   private final String accountId;
@@ -32,39 +32,39 @@ class ClientAccountDetails {
     this.tagClassifications = tagClassifications;
   }
 
-  String getClientId() {
+  public String getClientId() {
     return clientId;
   }
 
-  String getClientSecret() {
+  public String getClientSecret() {
     return clientSecret;
   }
 
-  String getAccountId() {
+  public String getAccountId() {
     return accountId;
   }
 
-  Map<String, String> getPotsToRecogniseIn() {
+  public Map<String, String> getPotsToRecogniseIn() {
     return potsToRecogniseIn;
   }
 
-  Map<String, String> getPotsToRecogniseOut() {
+  public Map<String, String> getPotsToRecogniseOut() {
     return potsToRecogniseOut;
   }
 
-  Map<String, String> getAutoTagMerchants() {
+  public Map<String, String> getAutoTagMerchants() {
     return autoTagMerchants;
   }
 
-  Map<String, String> getAutoTagAccounts() {
+  public Map<String, String> getAutoTagAccounts() {
     return autoTagAccounts;
   }
 
-  Map<String, String> getTagsToReplace() {
+  public Map<String, String> getTagsToReplace() {
     return tagsToReplace;
   }
 
-  Map<String, String> getTagClassifications() {
+  public Map<String, String> getTagClassifications() {
     return tagClassifications;
   }
 }

@@ -1,5 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.processor;
 
+import uk.co.lucyleach.monzo_transaction_reader.ClientAccountDetails;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,6 +63,15 @@ public class ClientProcessingDetails {
       autoTagMerchants = new HashMap<>();
       autoTagAccounts = new HashMap<>();
       tagsToReplace = new HashMap<>();
+    }
+
+    public Builder fromAccountDetails(ClientAccountDetails props) {
+      addPotsToRecogniseIn(props.getPotsToRecogniseIn());
+      addPotsToRecogniseOut(props.getPotsToRecogniseOut());
+      addAutoTagMerchants(props.getAutoTagMerchants());
+      addAutoTagAccounts(props.getAutoTagAccounts());
+      addTagsToReplace(props.getTagsToReplace());
+      return this;
     }
 
     public Builder addPotsToRecogniseIn(Map<String, String> potsToRecogniseIn) {
