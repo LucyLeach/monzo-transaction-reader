@@ -44,9 +44,7 @@ public class ReportCreator {
     }
 
     var transactionsToSplitOn = transactionsSortedByDate.stream()
-        .filter(t -> {
-          return t.getTag().equalsIgnoreCase(INCOME_TAG);
-        })
+        .filter(t -> t.getTag().equalsIgnoreCase(INCOME_TAG))
         .filter(t -> t.getAmount().getAmountInPence() > 20000)
         .collect(toSet());
 
