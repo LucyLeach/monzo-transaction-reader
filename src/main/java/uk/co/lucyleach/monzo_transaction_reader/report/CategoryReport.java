@@ -9,18 +9,18 @@ import java.util.List;
  */
 public class CategoryReport {
   private final String category;
-  private final List<Double> amountOutBySplit;
+  private final List<Double> amountOutByMonth;
 
-  public CategoryReport(String category, List<Double> amountOutBySplit) {
+  public CategoryReport(String category, List<Double> amountOutByMonth) {
     this.category = category;
-    this.amountOutBySplit = List.copyOf(amountOutBySplit);
+    this.amountOutByMonth = List.copyOf(amountOutByMonth);
   }
 
   public String getCategory() {
     return category;
   }
 
-  public List<Double> getAmountOutBySplit() {
-    return amountOutBySplit;
+  public List<Double> getAmountOutByMonth() {
+    return amountOutByMonth;
   }
 }

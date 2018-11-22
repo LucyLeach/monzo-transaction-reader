@@ -3,9 +3,12 @@ package uk.co.lucyleach.monzo_transaction_reader.report;
 import org.junit.Test;
 import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
+import uk.co.lucyleach.monzo_transaction_reader.output_model.SaleTransaction;
+import uk.co.lucyleach.monzo_transaction_reader.processor.ProcessorResult;
 import uk.co.lucyleach.monzo_transaction_reader.processor.ReasonIgnored;
 import uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProcessorResult;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +57,40 @@ public class ReportCreatorTest {
     assertEquals(ReasonIgnored.DECLINED, declineTagReport.getReasonIgnored());
     assertEquals(new Money(-820, "GBP"), declineTagReport.getTotalAmount());
     assertEquals(List.of(declineTranOutEarlier, declineTranOut), declineTagReport.getIgnoredTransactions());
+  }
+
+  @Test
+  public void testNoTagCategory() {
+    var unknownTag = "Tag1";
+    var knownTag = "Tag2";
+    var category = "Cat";
+
+    var toTest = new TransactionProcessorResult(Set.of(
+        createSingleTranProcessorResult(-348, unknownTag),
+        createSingleTranProcessorResult(-213, knownTag)
+    ));
+    var report = UNDER_TEST.create(toTest, Map.of(knownTag, category));
+
+    checkForNulls(report);
+    assertTrue(report.getIgnoredTransactionsReports().isEmpty());
+
+    assertEquals(2, report.getCategoryReports().size());
+
+    var knownCategoryReport = report.getCategoryReports().get(0);
+    assertEquals(category, knownCategoryReport.getCategory());
+    assertEquals(List.of(-2.13), knownCategoryReport.getAmountOutByMonth());
+
+    var unknownCategoryReport = report.getCategoryReports().get(1);
+    assertEquals(unknownTag, unknownCategoryReport.getCategory());
+    assertEquals(List.of(-3.48), unknownCategoryReport.getAmountOutByMonth());
+  }
+
+  private static ProcessorResult createSingleTranProcessorResult(int amount, String tag) {
+    var origTran = createMock(Transaction.class);
+    replay(origTran);
+    var now = ZonedDateTime.now();
+    var processedTran = new SaleTransaction("ID-" + now, now, new Money(amount, "GBP"), "Merchant", tag);
+    return ProcessorResult.createProcessedResult(origTran, Set.of(processedTran));
   }
 
   private static Transaction createMockIgnoredTransaction(int amount, String timeString) {

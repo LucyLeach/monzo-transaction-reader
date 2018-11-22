@@ -34,7 +34,7 @@ public class TagLevelReport {
   }
 
   public String getTagCategory() {
-    return tagCategory;
+    return tagCategory == null ? tag : tagCategory;
   }
 
   public Money getTotalAmountIn() {

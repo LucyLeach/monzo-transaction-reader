@@ -40,7 +40,6 @@ public class ReportCreator {
     var allCategories = monthlyReports.stream()
         .flatMap(sr -> sr.getTagReports().stream())
         .map(TagLevelReport::getTagCategory)
-        .filter(Objects::nonNull)
         .distinct()
         .sorted()
         .collect(toList());

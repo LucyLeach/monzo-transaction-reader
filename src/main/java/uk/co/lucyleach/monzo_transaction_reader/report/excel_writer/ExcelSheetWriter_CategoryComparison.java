@@ -30,7 +30,7 @@ public class ExcelSheetWriter_CategoryComparison implements ExcelSheetWriter<Cat
     return categoryReport -> {
       var row = sheet.createRow(sheet.getPhysicalNumberOfRows());
       row.createCell(0).setCellValue(categoryReport.getCategory());
-      categoryReport.getAmountOutBySplit().stream().forEachOrdered(amount -> {
+      categoryReport.getAmountOutByMonth().stream().forEachOrdered(amount -> {
         row.createCell(row.getPhysicalNumberOfCells()).setCellValue(amount);
       });
     };
