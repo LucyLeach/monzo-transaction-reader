@@ -14,6 +14,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -103,6 +104,42 @@ public class ReportCreatorTest {
         new Pair<>(tag4, category2)
     );
     assertEquals(expectedTagsWithCategories, tagsWithCategories);
+  }
+
+  @Test
+  public void testMultipleTagsPerTransaction() {
+    var tag1 = "Tag1";
+    var category1 = "Cat1";
+    var tag2 = "Tag2";
+    var category2 = "Cat2";
+
+    var originalTran = createMock(Transaction.class);
+    replay(originalTran);
+    var processedTran1 = new SaleTransaction("ID", timeWithHours(12), new Money(-500, "GBP"), "Merchant", tag1);
+    var processedTran2 = new SaleTransaction("ID", timeWithHours(12), new Money(-550, "GBP"), "Merchant", tag2);
+    var processorResult = ProcessorResult.createProcessedResult(originalTran, Set.of(processedTran1, processedTran2));
+
+    var report = UNDER_TEST.create(new TransactionProcessorResult(Set.of(processorResult)), Map.of(tag1, category1, tag2, category2));
+
+    checkForNulls(report);
+    assertTrue(report.getIgnoredTransactionsReports().isEmpty());
+
+    assertEquals(1, report.getMonthlyReportsByLabel().size());
+    var monthlyReport = report.getMonthlyReportsByLabel().values().iterator().next();
+    assertEquals(2, monthlyReport.getTransactions().size());
+    assertEquals(List.of(processedTran1, processedTran2), monthlyReport.getTransactions());
+    assertEquals(timeWithHours(12), monthlyReport.getEarliestTransaction());
+    assertEquals(new Money(0, "GBP"), monthlyReport.getTotalAmountIn());
+    assertEquals(new Money(-1050, "GBP"), monthlyReport.getTotalAmountOut());
+    assertEquals(new TreeMap<>(Map.of(timeWithHours(12).toLocalDate(), new Money(-1050, "GBP"))), monthlyReport.getExpenditureByDate());
+
+    assertEquals(2, monthlyReport.getTagReports().size());
+    var expectedTagReport1 = new TagLevelReport(tag1, category1, new Money(0, "GBP"), new Money(-500, "GBP"), List.of(processedTran1));
+    var actualTagReport1 = monthlyReport.getTagReports().get(0);
+    assertEquals(expectedTagReport1, actualTagReport1);
+    var expectedTagReport2 = new TagLevelReport(tag2, category2, new Money(0, "GBP"), new Money(-550, "GBP"), List.of(processedTran2));
+    var actualTagReport2 = monthlyReport.getTagReports().get(1);
+    assertEquals(expectedTagReport2, actualTagReport2);
   }
 
   private static ZonedDateTime timeWithHours(int hours) {

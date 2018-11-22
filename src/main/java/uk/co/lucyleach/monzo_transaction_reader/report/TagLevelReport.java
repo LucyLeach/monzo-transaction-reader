@@ -4,6 +4,7 @@ import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.ProcessedTransaction;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * User: Lucy
@@ -56,5 +57,22 @@ public class TagLevelReport {
   @Override
   public String toString() {
     return tag + ": " + contributingTransactions.size() + " transactions, totalling " + getTotalAmount();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if(this == o) return true;
+    if(o == null || getClass() != o.getClass()) return false;
+    TagLevelReport that = (TagLevelReport) o;
+    return Objects.equals(tag, that.tag) &&
+        Objects.equals(tagCategory, that.tagCategory) &&
+        Objects.equals(totalAmountIn, that.totalAmountIn) &&
+        Objects.equals(totalAmountOut, that.totalAmountOut) &&
+        Objects.equals(contributingTransactions, that.contributingTransactions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(tag, tagCategory, totalAmountIn, totalAmountOut, contributingTransactions);
   }
 }

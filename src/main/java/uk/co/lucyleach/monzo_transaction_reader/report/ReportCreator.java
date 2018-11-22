@@ -69,23 +69,23 @@ public class ReportCreator {
   }
 
   private Map<String, MonthlyTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult, Map<String, String> tagCategories) {
-    var transactionsSortedByDate = processorResult.getSuccessfulResults().values().stream()
+    var transactionsSortedByDateAndTag = processorResult.getSuccessfulResults().values().stream()
         .flatMap(Collection::stream)
-        .sorted(comparing(ProcessedTransaction::getDateTime))
+        .sorted(comparing(ProcessedTransaction::getDateTime).thenComparing(ProcessedTransaction::getTag))
         .collect(toList());
 
-    if(transactionsSortedByDate.isEmpty()) {
+    if(transactionsSortedByDateAndTag.isEmpty()) {
       return Map.of();
     }
 
-    var transactionsToSplitOn = transactionsSortedByDate.stream()
+    var transactionsToSplitOn = transactionsSortedByDateAndTag.stream()
         .filter(t -> t.getTag().equalsIgnoreCase(INCOME_TAG))
         .filter(t -> t.getAmount().getAmountInPence() > 20000)
         .collect(toSet());
 
     var transactionsForThisPeriod = new ArrayList<ProcessedTransaction>();
     var monthlyReports = new ArrayList<MonthlyTransactionReport>();
-    for(var transaction : transactionsSortedByDate) {
+    for(var transaction : transactionsSortedByDateAndTag) {
       if(transactionsToSplitOn.contains(transaction)) {
         if(!transactionsForThisPeriod.isEmpty()) {
           monthlyReports.add(createMonthlyTransactionReport(transactionsForThisPeriod, tagCategories));
@@ -107,7 +107,7 @@ public class ReportCreator {
     var extraNumLabel = 0;
     var monthlyReportsByLabel = new LinkedHashMap<String, MonthlyTransactionReport>();
     for(var monthlyReport : monthlyReportsToLabel) {
-      var thisReportMonth = monthlyReport.getEarliestTransaction().plusDays(5).getMonth();
+      var thisReportMonth = monthlyReport.getEarliestTransaction().plusDays(5).getMonth(); //TODO I'd rather not have this method on the monthly report
       if(thisReportMonth.equals(previousMonth)) {
         extraNumLabel += 1;
         var label = thisReportMonth.name().substring(0, 3) + "_" + extraNumLabel;
