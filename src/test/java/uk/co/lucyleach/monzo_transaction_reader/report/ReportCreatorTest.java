@@ -27,10 +27,10 @@ public class ReportCreatorTest {
 
   @Test
   public void testIgnoredTransactionsOnly() {
-    var ignoreTranOut = createMockIgnoredTransaction(-150, "2018-09-23T12:00:00.0Z");
-    var declineTranOut = createMockIgnoredTransaction(-300, "2018-09-23T13:00:00.0Z");
-    var declineTranOutEarlier = createMockIgnoredTransaction(-520, "2018-09-22T13:00:00.0Z");
-    var ignoreTranIn = createMockIgnoredTransaction(137, "2018-09-23T14:00:00.0Z");
+    var ignoreTranOut = createOriginalTransaction(-150, "2018-09-23T12:00:00.0Z");
+    var declineTranOut = createOriginalTransaction(-300, "2018-09-23T13:00:00.0Z");
+    var declineTranOutEarlier = createOriginalTransaction(-520, "2018-09-22T13:00:00.0Z");
+    var ignoreTranIn = createOriginalTransaction(137, "2018-09-23T14:00:00.0Z");
 
     var toTest = new TransactionProcessorResult(Set.of(
         createIgnoredResult(ignoreTranOut, ReasonIgnored.IGNORE_TAG),
@@ -66,8 +66,8 @@ public class ReportCreatorTest {
     var category = "Cat";
 
     var toTest = new TransactionProcessorResult(Set.of(
-        createSingleTranProcessorResult(-348, unknownTag),
-        createSingleTranProcessorResult(-213, knownTag)
+        createSingleTranProcessorResult(-348, unknownTag, ZonedDateTime.now()),
+        createSingleTranProcessorResult(-213, knownTag, ZonedDateTime.now())
     ));
     var report = UNDER_TEST.create(toTest, Map.of(knownTag, category));
 
@@ -85,15 +85,14 @@ public class ReportCreatorTest {
     assertEquals(List.of(-3.48), unknownCategoryReport.getAmountOutByMonth());
   }
 
-  private static ProcessorResult createSingleTranProcessorResult(int amount, String tag) {
+  private static ProcessorResult createSingleTranProcessorResult(int amount, String tag, ZonedDateTime created) {
     var origTran = createMock(Transaction.class);
     replay(origTran);
-    var now = ZonedDateTime.now();
-    var processedTran = new SaleTransaction("ID-" + now, now, new Money(amount, "GBP"), "Merchant", tag);
+    var processedTran = new SaleTransaction("ID-" + created, created, new Money(amount, "GBP"), "Merchant", tag);
     return ProcessorResult.createProcessedResult(origTran, Set.of(processedTran));
   }
 
-  private static Transaction createMockIgnoredTransaction(int amount, String timeString) {
+  private static Transaction createOriginalTransaction(int amount, String timeString) {
     var ignoreTranOut = createMock(Transaction.class);
     expect(ignoreTranOut.getCurrency()).andReturn("GBP").anyTimes();
     expect(ignoreTranOut.getAmount()).andReturn(amount).anyTimes();
