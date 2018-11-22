@@ -6,11 +6,11 @@ package uk.co.lucyleach.monzo_transaction_reader.processor;
  * Time: 09:50
  */
 public enum ReasonIgnored {
-  ZERO_TRANSACTION("Zero transaction"),
   IGNORE_TAG("Tagged with #Ignore"),
-  UNCONFIGURED_POT("Unconfigured pot"),
   NON_GBP("Not in GBP"),
-  DECLINED("Declined transaction");
+  DECLINED("Declined transaction"),
+  ZERO_TRANSACTION("Zero transaction"),
+  UNCONFIGURED_POT("Unconfigured pot");
 
   private final String humanString;
 
