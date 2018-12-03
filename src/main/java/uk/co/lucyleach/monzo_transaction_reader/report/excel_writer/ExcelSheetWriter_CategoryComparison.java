@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * User: Lucy
  * Date: 01/10/2018
@@ -22,7 +24,8 @@ public class ExcelSheetWriter_CategoryComparison implements ExcelSheetWriter<Cat
 
   @Override
   public String[] getTitles(TransactionReport report) {
-    return ImmutableList.<String>builder().add("Categories").addAll(report.getMonthlyReportsByLabel().keySet()).build().toArray(new String[]{});
+    var titles = report.getMonthlyReportsByFirstOfMonth().keySet().stream().sorted().map(d -> d.getMonth().toString().substring(0, 3).toUpperCase() + d.getYear()).collect(toList());
+    return ImmutableList.<String>builder().add("Categories").addAll(titles).build().toArray(new String[]{});
   }
 
   @Override
@@ -30,9 +33,7 @@ public class ExcelSheetWriter_CategoryComparison implements ExcelSheetWriter<Cat
     return categoryReport -> {
       var row = sheet.createRow(sheet.getPhysicalNumberOfRows());
       row.createCell(0).setCellValue(categoryReport.getCategory());
-      categoryReport.getAmountOutByMonth().stream().forEachOrdered(amount -> {
-        row.createCell(row.getPhysicalNumberOfCells()).setCellValue(amount);
-      });
+      categoryReport.getAmountOutByMonth().stream().forEachOrdered(amount -> row.createCell(row.getPhysicalNumberOfCells()).setCellValue(amount));
     };
   }
 }

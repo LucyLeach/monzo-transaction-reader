@@ -45,7 +45,7 @@ public class ReportCreatorTest {
     var report = UNDER_TEST.create(toTest, Map.of());
     checkForNulls(report);
 
-    assertTrue(report.getMonthlyReportsByLabel().isEmpty());
+    assertTrue(report.getMonthlyReportsByFirstOfMonth().isEmpty());
     assertTrue(report.getAllTagsSortedWithCategories().isEmpty());
     assertTrue(report.getCategoryReports().isEmpty());
 
@@ -124,8 +124,8 @@ public class ReportCreatorTest {
     checkForNulls(report);
     assertTrue(report.getIgnoredTransactionsReports().isEmpty());
 
-    assertEquals(1, report.getMonthlyReportsByLabel().size());
-    var monthlyReport = report.getMonthlyReportsByLabel().values().iterator().next();
+    assertEquals(1, report.getMonthlyReportsByFirstOfMonth().size());
+    var monthlyReport = report.getMonthlyReportsByFirstOfMonth().values().iterator().next();
     assertEquals(2, monthlyReport.getTransactions().size());
     assertEquals(List.of(processedTran1, processedTran2), monthlyReport.getTransactions());
     assertEquals(timeWithHours(12), monthlyReport.getEarliestTransaction());
@@ -166,7 +166,7 @@ public class ReportCreatorTest {
     assertNotNull(report);
     assertNotNull(report.getAllTagsSortedWithCategories());
     assertNotNull(report.getCategoryReports());
-    assertNotNull(report.getMonthlyReportsByLabel());
+    assertNotNull(report.getMonthlyReportsByFirstOfMonth());
     assertNotNull(report.getIgnoredTransactionsReports());
   }
 }

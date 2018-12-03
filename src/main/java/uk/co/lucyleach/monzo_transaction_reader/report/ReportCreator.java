@@ -10,8 +10,9 @@ import uk.co.lucyleach.monzo_transaction_reader.processor.ReasonIgnored;
 import uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProcessorResult;
 import uk.co.lucyleach.monzo_transaction_reader.utils.Pair;
 
-import java.time.Month;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -29,11 +30,11 @@ public class ReportCreator {
   private static final String INCOME_TAG = "income";
 
   public TransactionReport create(TransactionProcessorResult result, Map<String, String> tagCategories) {
-    var monthlyReportsByLabel = splitAndCreateReports(result, tagCategories);
-    var sortedTagsWithCategories = getAllTagsSortedWithCategories(monthlyReportsByLabel.values());
-    var categoryReports = getCategoryReports(monthlyReportsByLabel.values());
+    var monthlyReportsByFirstOfMonth = splitAndCreateReports(result, tagCategories);
+    var sortedTagsWithCategories = getAllTagsSortedWithCategories(monthlyReportsByFirstOfMonth.values());
+    var categoryReports = getCategoryReports(monthlyReportsByFirstOfMonth.values());
     var ignoredTransactionReports = createIgnoredTransactionsReports(result);
-    return new TransactionReport(monthlyReportsByLabel, sortedTagsWithCategories, categoryReports, ignoredTransactionReports);
+    return new TransactionReport(monthlyReportsByFirstOfMonth, sortedTagsWithCategories, categoryReports, ignoredTransactionReports);
   }
 
   private List<CategoryReport> getCategoryReports(Collection<MonthlyTransactionReport> monthlyReports) {
@@ -68,73 +69,22 @@ public class ReportCreator {
         .collect(toList());
   }
 
-  private Map<String, MonthlyTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult, Map<String, String> tagCategories) {
-    var transactionsSortedByDateAndTag = processorResult.getSuccessfulResults().values().stream()
-        .flatMap(Collection::stream)
-        .sorted(comparing(ProcessedTransaction::getDateTime).thenComparing(ProcessedTransaction::getTag))
-        .collect(toList());
-
-    if(transactionsSortedByDateAndTag.isEmpty()) {
+  private Map<LocalDate, MonthlyTransactionReport> splitAndCreateReports(TransactionProcessorResult processorResult, Map<String, String> tagCategories) {
+    if(processorResult.getSuccessfulResults().isEmpty()) {
       return Map.of();
     }
 
-    var transactionsToSplitOn = transactionsSortedByDateAndTag.stream()
-        .filter(t -> t.getTag().equalsIgnoreCase(INCOME_TAG))
-        .filter(t -> t.getAmount().getAmountInPence() > 20000)
-        .collect(toSet());
-
-    var transactionsForThisPeriod = new ArrayList<ProcessedTransaction>();
-    var monthlyReports = new ArrayList<MonthlyTransactionReport>();
-    for(var transaction : transactionsSortedByDateAndTag) {
-      if(transactionsToSplitOn.contains(transaction)) {
-        if(!transactionsForThisPeriod.isEmpty()) {
-          monthlyReports.add(createMonthlyTransactionReport(transactionsForThisPeriod, tagCategories));
-          transactionsForThisPeriod = new ArrayList<>();
-        }
-      }
-      transactionsForThisPeriod.add(transaction);
-    }
-    monthlyReports.add(createMonthlyTransactionReport(transactionsForThisPeriod, tagCategories));
-
-    return labelMonthlyReports(monthlyReports);
+    var allProcessedTransactions = processorResult.getSuccessfulResults().values().stream().flatMap(Collection::stream).collect(toSet());
+    var monthlyTransMap = allProcessedTransactions.stream().collect(Collectors.groupingBy(getFirstOfMonth()));
+    var monthlyReportMap = Maps.transformValues(monthlyTransMap, tList -> createMonthlyTransactionReport(tList, tagCategories));
+    return new TreeMap<>(monthlyReportMap);
   }
 
-  private Map<String, MonthlyTransactionReport> labelMonthlyReports(List<MonthlyTransactionReport> originalMonthlyReports) {
-    var monthlyReportsToLabel = reportsWithoutInitialStub(originalMonthlyReports);
-
-    //Try to label by month, but if the previous label was the month then add an extra number for uniqueness
-    Month previousMonth = null;
-    var extraNumLabel = 0;
-    var monthlyReportsByLabel = new LinkedHashMap<String, MonthlyTransactionReport>();
-    for(var monthlyReport : monthlyReportsToLabel) {
-      var thisReportMonth = monthlyReport.getEarliestTransaction().plusDays(5).getMonth(); //TODO I'd rather not have this method on the monthly report
-      if(thisReportMonth.equals(previousMonth)) {
-        extraNumLabel += 1;
-        var label = thisReportMonth.name().substring(0, 3) + "_" + extraNumLabel;
-        monthlyReportsByLabel.put(label, monthlyReport);
-      } else {
-        var label = thisReportMonth.name().substring(0, 3);
-        monthlyReportsByLabel.put(label, monthlyReport);
-        extraNumLabel = 0;
-        previousMonth = thisReportMonth;
-      }
-    }
-
-    return monthlyReportsByLabel;
-  }
-
-  private List<MonthlyTransactionReport> reportsWithoutInitialStub(List<MonthlyTransactionReport> monthlyReports) {
-    if(monthlyReports.size() > 1 && !startsWithIncomeTransaction(monthlyReports.get(0))) {
-      var mutableList = new ArrayList<>(monthlyReports);
-      mutableList.remove(0);
-      return mutableList;
-    } else {
-      return monthlyReports;
-    }
-  }
-
-  private boolean startsWithIncomeTransaction(MonthlyTransactionReport monthlyReport) {
-    return monthlyReport.getTransactions().get(0).getTag().equalsIgnoreCase(INCOME_TAG);
+  private static Function<ProcessedTransaction, LocalDate> getFirstOfMonth() {
+    return t -> {
+      var transactionTime = t.getDateTime();
+      return LocalDate.of(transactionTime.getYear(), transactionTime.getMonth(), 1);
+    };
   }
 
   private List<IgnoredTransactionsReport> createIgnoredTransactionsReports(TransactionProcessorResult result) {
@@ -146,21 +96,23 @@ public class ReportCreator {
         .collect(toList());
   }
 
-  private MonthlyTransactionReport createMonthlyTransactionReport(List<ProcessedTransaction> processedTransactionsSortedByDate, Map<String, String> tagCategories) {
-    var tagMap = processedTransactionsSortedByDate.stream().collect(Collectors.groupingBy(ProcessedTransaction::getTag));
+  private MonthlyTransactionReport createMonthlyTransactionReport(List<ProcessedTransaction> processedTransactions, Map<String, String> tagCategories) {
+    processedTransactions.sort(Comparator.comparing(ProcessedTransaction::getDateTime).thenComparing(ProcessedTransaction::getTag));
+
+    var tagMap = processedTransactions.stream().collect(Collectors.groupingBy(ProcessedTransaction::getTag));
     var tagReports = tagMap.entrySet().stream()
         .map(e -> createTagLevelReport(e, tagCategories))
         .sorted(comparing(TagLevelReport::getTag))
         .collect(toList());
 
-    var amountIn = sumTransactionsWithFilter(processedTransactionsSortedByDate, ProcessedTransaction::isPositive);
-    var amountOut = sumTransactionsWithFilter(processedTransactionsSortedByDate, ProcessedTransaction::isNegative);
+    var amountIn = sumTransactionsWithFilter(processedTransactions, ProcessedTransaction::isPositive);
+    var amountOut = sumTransactionsWithFilter(processedTransactions, ProcessedTransaction::isNegative);
 
-    var dateToNegativeTransactionMap = processedTransactionsSortedByDate.stream().filter(ProcessedTransaction::isNegative).collect(Collectors.groupingBy(t -> t.getDateTime().toLocalDate()));
+    var dateToNegativeTransactionMap = processedTransactions.stream().filter(ProcessedTransaction::isNegative).collect(Collectors.groupingBy(t -> t.getDateTime().toLocalDate()));
     var dateToExpenditureMap = Maps.transformValues(dateToNegativeTransactionMap, ReportCreator::sumTransactions);
     var sortedDateToExpenditureMap = new TreeMap<>(dateToExpenditureMap);
 
-    return new MonthlyTransactionReport(processedTransactionsSortedByDate, amountIn, amountOut, tagReports, sortedDateToExpenditureMap);
+    return new MonthlyTransactionReport(processedTransactions, amountIn, amountOut, tagReports, sortedDateToExpenditureMap);
   }
 
   private static Map<ReasonIgnored, Collection<Transaction>> invertMap(Map<Transaction, ReasonIgnored> originalMap) {
