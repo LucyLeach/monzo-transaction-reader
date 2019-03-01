@@ -123,8 +123,7 @@ public class TransactionProcessor {
   private static Function<Transaction, String> saleTransactionNoteGetter(ClientProcessingDetails clientDetails) {
     //NB Does not override existing notes
     return transaction -> {
-      var noOriginalNotes = transaction.getNotes() == null || transaction.getNotes().isEmpty();
-      if(noOriginalNotes && clientDetails.getAutoTagMerchants().containsKey(transaction.getMerchant().getName())) {
+      if(clientDetails.getAutoTagMerchants().containsKey(transaction.getMerchant().getName())) {
         return clientDetails.getAutoTagMerchants().get(transaction.getMerchant().getName());
       } else {
         return transaction.getNotes();

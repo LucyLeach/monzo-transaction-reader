@@ -153,12 +153,12 @@ public class TransactionProcessorTest {
   }
 
   @Test
-  public void testSaleTransactionCantOverrideTagWithDefault() {
+  public void testSaleTransactionOverrideTagWithDefault() {
     var merchantName = "Merchant Name";
     var defaultTag = "DefaultTag";
-    var saleTransaction = new Transaction("Can't override tag", -100, "GBP", "2018-02-01T08:00:00.0Z", "#ExistingTag", new Merchant(merchantName), "Description", emptyCounterparty(), null);
-    var expectedOutputTransaction = new SaleTransaction("Can't override tag", ZonedDateTime.of(2018, 2, 1, 8, 0, 0, 0, ZoneId.of("UTC")),
-        new Money(-100, "GBP"), merchantName, "ExistingTag");
+    var saleTransaction = new Transaction("Can override tag", -100, "GBP", "2018-02-01T08:00:00.0Z", "#ExistingTag", new Merchant(merchantName), "Description", emptyCounterparty(), null);
+    var expectedOutputTransaction = new SaleTransaction("Can override tag", ZonedDateTime.of(2018, 2, 1, 8, 0, 0, 0, ZoneId.of("UTC")),
+        new Money(-100, "GBP"), merchantName, defaultTag);
     var clientDetails = ClientProcessingDetails.builder()
         .addAutoTagMerchant(merchantName, "#" + defaultTag)
         .build();
