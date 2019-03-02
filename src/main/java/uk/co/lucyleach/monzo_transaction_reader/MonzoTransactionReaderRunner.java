@@ -22,6 +22,7 @@ public class MonzoTransactionReaderRunner {
   private final ClientAccountDetailsReader clientAccountDetailsReader;
   private final CredentialLoader credentialLoader;
   private final TransactionLoader transactionLoader;
+  private final PotLoader potLoader;
   private final TransactionProcessor transactionProcessor;
   private final ReportCreator reportCreator;
   private final ReportWriter_Excel reportWriter;
@@ -34,6 +35,7 @@ public class MonzoTransactionReaderRunner {
     this.clientAccountDetailsReader = new ClientAccountDetailsReader();
     this.credentialLoader = new CredentialLoader(httpTransport, jsonFactory, pathToDataStore);
     this.transactionLoader = new TransactionLoader(httpTransport, jsonFactory);
+    this.potLoader = new PotLoader(httpTransport, jsonFactory);
     this.transactionProcessor = new TransactionProcessor();
     this.reportCreator = new ReportCreator();
     this.reportWriter = new ReportWriter_Excel(pathToOutput);
@@ -44,6 +46,7 @@ public class MonzoTransactionReaderRunner {
     var props = clientAccountDetailsReader.read(pathToProps);
     var credential = credentialLoader.load(props.getClientId(), props.getClientSecret());
     var transactionList = transactionLoader.load(credential, props.getAccountId(), sinceDateOpt);
+    var potList = potLoader.load(credential);
 
     var clientProcessingDetails = ClientProcessingDetails.builder().fromAccountDetails(props).build();
     var processorResult = transactionProcessor.process(transactionList, clientProcessingDetails);
