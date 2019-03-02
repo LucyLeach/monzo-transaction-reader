@@ -1,5 +1,7 @@
 package uk.co.lucyleach.monzo_transaction_reader.processor;
 
+import javax.annotation.Nullable;
+
 /**
  * User: Lucy
  * Date: 08/09/2018
@@ -13,13 +15,20 @@ public enum ReasonIgnored {
   UNCONFIGURED_POT("Unconfigured pot");
 
   private final String humanString;
+  @Nullable
+  private String extraInformation;
 
   ReasonIgnored(String humanString) {
     this.humanString = humanString;
+    this.extraInformation = null;
+  }
+
+  public void addExtraInformation(@Nullable String extraInformation) {
+    this.extraInformation = extraInformation;
   }
 
   @Override
   public String toString() {
-    return humanString;
+    return extraInformation == null ? humanString : humanString + ": " + extraInformation;
   }
 }

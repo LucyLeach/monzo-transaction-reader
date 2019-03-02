@@ -71,7 +71,12 @@ public class ProcessorResult {
   }
 
   public static ProcessorResult createIgnoredResult(Transaction originalTransaction, ReasonIgnored reasonIgnored) {
+    return createIgnoredResult(originalTransaction, reasonIgnored, null);
+  }
+
+  public static ProcessorResult createIgnoredResult(Transaction originalTransaction, ReasonIgnored reasonIgnored, @Nullable String extraInformation) {
     checkNotNull(originalTransaction, reasonIgnored);
+    reasonIgnored.addExtraInformation(extraInformation);
     return new ProcessorResult(originalTransaction, null, null, reasonIgnored);
   }
 }

@@ -4,6 +4,7 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Pot;
 import uk.co.lucyleach.monzo_transaction_reader.processor.ClientProcessingDetails;
 import uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProcessor;
 import uk.co.lucyleach.monzo_transaction_reader.report.BadTransactionReportWriter_Console;
@@ -12,6 +13,8 @@ import uk.co.lucyleach.monzo_transaction_reader.report.excel_writer.ReportWriter
 
 import java.io.IOException;
 import java.util.Optional;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * User: Lucy
@@ -48,8 +51,9 @@ public class MonzoTransactionReaderRunner {
     var transactionList = transactionLoader.load(credential, props.getAccountId(), sinceDateOpt);
     var potList = potLoader.load(credential);
 
+    var potIdMap = potList.getPots().stream().collect(toMap(Pot::getId, Pot::getName));
     var clientProcessingDetails = ClientProcessingDetails.builder().fromAccountDetails(props).build();
-    var processorResult = transactionProcessor.process(transactionList, clientProcessingDetails);
+    var processorResult = transactionProcessor.process(transactionList, clientProcessingDetails, potIdMap);
     if(processorResult.getUnsuccessfulResults().isEmpty()) {
       var report = reportCreator.create(processorResult, props.getTagCategories());
       reportWriter.write(report);

@@ -30,14 +30,14 @@ public class TransactionProcessor {
   private final TagParser tagParser = new TagParser();
   private final TagCleaner tagCleaner = new TagCleaner();
 
-  public TransactionProcessorResult process(TransactionList transactions, ClientProcessingDetails clientDetails) {
+  public TransactionProcessorResult process(TransactionList transactions, ClientProcessingDetails clientDetails, Map<String, String> potIdMap) {
     var results = transactions.getTransactions().stream()
-        .map(t -> process(t, clientDetails))
+        .map(t -> process(t, clientDetails, potIdMap))
         .collect(toSet());
     return new TransactionProcessorResult(results);
   }
 
-  private ProcessorResult process(Transaction original, ClientProcessingDetails clientDetails) {
+  private ProcessorResult process(Transaction original, ClientProcessingDetails clientDetails, Map<String, String> potIdMap) {
     if(original.getAmount() == 0) {
       return createIgnoredResult(original, ReasonIgnored.ZERO_TRANSACTION);
     } else if(!GBP.equals(original.getCurrency())) {
@@ -47,7 +47,7 @@ public class TransactionProcessor {
     } else if(isSaleTransaction(original)) {
       return processSaleTransaction(original, clientDetails);
     } else if(isPotTransaction(original)) {
-      return processPotTransaction(original, clientDetails);
+      return processPotTransaction(original, clientDetails, potIdMap);
     } else if(isTransferTransaction(original)) {
       return processTransferTransaction(original, clientDetails);
     } else {
@@ -84,12 +84,13 @@ public class TransactionProcessor {
     return createProcessedResult(original, processedTransactions);
   }
 
-  private ProcessorResult processPotTransaction(Transaction original, ClientProcessingDetails clientDetails) {
+  private ProcessorResult processPotTransaction(Transaction original, ClientProcessingDetails clientDetails, Map<String, String> potIdMap) {
     var potId = original.getDescription();
+    var potName = potIdMap.getOrDefault(potId, potId);
     var isInTransaction = original.getAmount() > 0;
     var inDetails = isInTransaction ? clientDetails.getPotsToRecogniseIn().containsKey(potId) : clientDetails.getPotsToRecogniseOut().containsKey(potId);
     if(!inDetails) {
-      return createIgnoredResult(original, ReasonIgnored.UNCONFIGURED_POT);
+      return createIgnoredResult(original, ReasonIgnored.UNCONFIGURED_POT, potName);
     } else if(checkForIgnoreTag(original.getNotes())) {
       return createIgnoredResult(original, ReasonIgnored.IGNORE_TAG);
     } else {
@@ -99,7 +100,7 @@ public class TransactionProcessor {
       }
       var tag = hashTag.replace("#", "");
       var processedTransaction = new TransferTransaction(original.getId(), convertDateTime(original.getCreated()), new Money(original.getAmount(), original.getCurrency()),
-          original.getDescription(), tag);
+          potName, tag);
       return createProcessedResult(original, Set.of(processedTransaction));
     }
   }
