@@ -28,8 +28,8 @@ public class ClientAccountDetailsReaderTest {
     assertEquals(EXPECTED_CLIENT_ID, details.getClientId());
     assertEquals(EXPECTED_CLIENT_SECRET, details.getClientSecret());
     assertEquals(EXPECTED_ACCOUNT_ID, details.getAccountId());
-    assertEquals(Map.of("POT_ID_1", "#Foo", "POT_ID_2", "#Bar"), details.getPotsToRecogniseIn());
-    assertEquals(Map.of("POT_ID_3", "#Foo", "POT_ID_4", "#Bar"), details.getPotsToRecogniseOut());
+    assertEquals(Map.of("Pot name 1", "#Foo", "Pot name 2", "#Bar"), details.getPotsToRecogniseIn());
+    assertEquals(Map.of("Pot name 3", "#Foo", "Pot name 4", "#Bar"), details.getPotsToRecogniseOut());
     assertEquals(Map.of("Merchant", "#MerchantTag", "OtherMerchant", "#OtherMerchantTag"), details.getAutoTagMerchants());
     assertEquals(Map.of("123/456", "#Tag1", "789/123", "#Tag2"), details.getAutoTagAccounts());
     assertEquals(Map.of("foo","bar", "foo1", "bar1"), details.getTagsToReplace());

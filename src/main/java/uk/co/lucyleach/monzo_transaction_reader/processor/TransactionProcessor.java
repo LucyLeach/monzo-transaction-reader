@@ -88,13 +88,13 @@ public class TransactionProcessor {
     var potId = original.getDescription();
     var potName = potIdMap.getOrDefault(potId, potId);
     var isInTransaction = original.getAmount() > 0;
-    var inDetails = isInTransaction ? clientDetails.getPotsToRecogniseIn().containsKey(potId) : clientDetails.getPotsToRecogniseOut().containsKey(potId);
+    var inDetails = isInTransaction ? clientDetails.getPotsToRecogniseIn().containsKey(potName) : clientDetails.getPotsToRecogniseOut().containsKey(potName);
     if(!inDetails) {
       return createIgnoredPotResult(original, potName);
     } else if(checkForIgnoreTag(original.getNotes())) {
       return createIgnoredResult(original, SimpleReasonIgnored.IGNORE_TAG);
     } else {
-      var hashTag = isInTransaction ? clientDetails.getPotsToRecogniseIn().get(potId) : clientDetails.getPotsToRecogniseOut().get(potId);
+      var hashTag = isInTransaction ? clientDetails.getPotsToRecogniseIn().get(potName) : clientDetails.getPotsToRecogniseOut().get(potName);
       if(checkForIgnoreTag(hashTag)) {
         return createIgnoredResult(original, SimpleReasonIgnored.IGNORE_TAG);
       }

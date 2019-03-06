@@ -225,7 +225,7 @@ public class TransactionProcessorTest {
     var noNamePotResult = createPotTransaction(noNamePotId, "Tag", true);
     var namedPotResult = createPotTransaction(namedPotId, "Tag", true, namedPotName);
 
-    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseIn(Map.of(noNamePotId, "Tag", namedPotId, "Tag")).build();
+    var clientDetails = ClientProcessingDetails.builder().addPotsToRecogniseIn(Map.of(noNamePotId, "Tag", namedPotName, "Tag")).build();
 
     var result = UNDER_TEST.process(new TransactionList(noNamePotResult.getOriginalTransaction(), namedPotResult.getOriginalTransaction()), clientDetails, Map.of(namedPotId, namedPotName));
 
