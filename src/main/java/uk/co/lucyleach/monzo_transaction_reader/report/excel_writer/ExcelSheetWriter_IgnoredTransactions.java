@@ -30,7 +30,7 @@ public class ExcelSheetWriter_IgnoredTransactions implements ExcelSheetWriter<Ig
     return report -> {
       var firstTagRow = sheet.getPhysicalNumberOfRows(); //Last row index + 1
       var tagRow = sheet.createRow(firstTagRow);
-      tagRow.createCell(0).setCellValue(report.getReasonIgnored().toString());
+      tagRow.createCell(0).setCellValue(report.getReasonIgnored().toReadableString());
       var allTransactions = report.getIgnoredTransactions();
       IntStream.range(0, allTransactions.size()).forEachOrdered(i -> {
         var row = sheet.createRow(firstTagRow + 1 + i);

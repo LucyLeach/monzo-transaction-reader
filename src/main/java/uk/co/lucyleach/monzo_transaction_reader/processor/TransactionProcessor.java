@@ -39,11 +39,11 @@ public class TransactionProcessor {
 
   private ProcessorResult process(Transaction original, ClientProcessingDetails clientDetails, Map<String, String> potIdMap) {
     if(original.getAmount() == 0) {
-      return createIgnoredResult(original, ReasonIgnored.ZERO_TRANSACTION);
+      return createIgnoredResult(original, SimpleReasonIgnored.ZERO_TRANSACTION);
     } else if(!GBP.equals(original.getCurrency())) {
-      return createIgnoredResult(original, ReasonIgnored.NON_GBP);
+      return createIgnoredResult(original, SimpleReasonIgnored.NON_GBP);
     } else if(original.isDeclined()) {
-      return createIgnoredResult(original, ReasonIgnored.DECLINED);
+      return createIgnoredResult(original, SimpleReasonIgnored.DECLINED);
     } else if(isSaleTransaction(original)) {
       return processSaleTransaction(original, clientDetails);
     } else if(isPotTransaction(original)) {
@@ -67,7 +67,7 @@ public class TransactionProcessor {
                                                    Function<Transaction, Function<Map.Entry<String, Integer>, ProcessedTransaction>> tagToTransactionFunction) {
     var notes = noteGetter.apply(original);
     if(checkForIgnoreTag(notes)) {
-      return ProcessorResult.createIgnoredResult(original, ReasonIgnored.IGNORE_TAG);
+      return ProcessorResult.createIgnoredResult(original, SimpleReasonIgnored.IGNORE_TAG);
     }
 
     var amount = original.getAmount();
@@ -90,13 +90,13 @@ public class TransactionProcessor {
     var isInTransaction = original.getAmount() > 0;
     var inDetails = isInTransaction ? clientDetails.getPotsToRecogniseIn().containsKey(potId) : clientDetails.getPotsToRecogniseOut().containsKey(potId);
     if(!inDetails) {
-      return createIgnoredResult(original, ReasonIgnored.UNCONFIGURED_POT, potName);
+      return createIgnoredPotResult(original, potName);
     } else if(checkForIgnoreTag(original.getNotes())) {
-      return createIgnoredResult(original, ReasonIgnored.IGNORE_TAG);
+      return createIgnoredResult(original, SimpleReasonIgnored.IGNORE_TAG);
     } else {
       var hashTag = isInTransaction ? clientDetails.getPotsToRecogniseIn().get(potId) : clientDetails.getPotsToRecogniseOut().get(potId);
       if(checkForIgnoreTag(hashTag)) {
-        return createIgnoredResult(original, ReasonIgnored.IGNORE_TAG);
+        return createIgnoredResult(original, SimpleReasonIgnored.IGNORE_TAG);
       }
       var tag = hashTag.replace("#", "");
       var processedTransaction = new TransferTransaction(original.getId(), convertDateTime(original.getCreated()), new Money(original.getAmount(), original.getCurrency()),

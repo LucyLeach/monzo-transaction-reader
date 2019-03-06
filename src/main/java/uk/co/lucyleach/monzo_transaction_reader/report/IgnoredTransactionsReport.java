@@ -38,6 +38,6 @@ public class IgnoredTransactionsReport {
 
   @Override
   public String toString() {
-    return reasonIgnored + ": " + ignoredTransactions.size() + " transactions, totalling " + getTotalAmount();
+    return reasonIgnored.toReadableString() + ": " + ignoredTransactions.size() + " transactions, totalling " + getTotalAmount();
   }
 }

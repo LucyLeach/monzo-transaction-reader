@@ -70,13 +70,13 @@ public class ProcessorResult {
     return new ProcessorResult(originalTransaction, null, errorMessage, null);
   }
 
-  public static ProcessorResult createIgnoredResult(Transaction originalTransaction, ReasonIgnored reasonIgnored) {
-    return createIgnoredResult(originalTransaction, reasonIgnored, null);
+  public static ProcessorResult createIgnoredResult(Transaction originalTransaction, SimpleReasonIgnored reasonIgnored) {
+    checkNotNull(originalTransaction, reasonIgnored);
+    return new ProcessorResult(originalTransaction, null, null, reasonIgnored);
   }
 
-  public static ProcessorResult createIgnoredResult(Transaction originalTransaction, ReasonIgnored reasonIgnored, @Nullable String extraInformation) {
-    checkNotNull(originalTransaction, reasonIgnored);
-    reasonIgnored.addExtraInformation(extraInformation);
-    return new ProcessorResult(originalTransaction, null, null, reasonIgnored);
+  public static ProcessorResult createIgnoredPotResult(Transaction originalTransaction, String potName) {
+    checkNotNull(originalTransaction, potName);
+    return new ProcessorResult(originalTransaction, null, null, new ReasonIgnored_Pot(potName));
   }
 }

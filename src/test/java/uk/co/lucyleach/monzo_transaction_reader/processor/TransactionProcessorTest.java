@@ -182,7 +182,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, ReasonIgnored.UNCONFIGURED_POT, potTransferIn, potTransferOut);
+    checkIgnoredTransactions(result, new ReasonIgnored_Pot(potId), potTransferIn, potTransferOut);
   }
 
   @Test
@@ -198,7 +198,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkSuccessfulResult(result.getSuccessfulResults(), potTransferInResult);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, ReasonIgnored.UNCONFIGURED_POT, potTransferOut);
+    checkIgnoredTransactions(result, new ReasonIgnored_Pot(potId), potTransferOut);
   }
 
   @Test
@@ -214,7 +214,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkSuccessfulResult(result.getSuccessfulResults(), potTransferOutResult);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, ReasonIgnored.UNCONFIGURED_POT, potTransferIn);
+    checkIgnoredTransactions(result, new ReasonIgnored_Pot(potId), potTransferIn);
   }
 
   @Test
@@ -266,7 +266,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, ReasonIgnored.ZERO_TRANSACTION, saleTransaction, potTransferInResult.getOriginalTransaction(), potTransferOutResult.getOriginalTransaction());
+    checkIgnoredTransactions(result, SimpleReasonIgnored.ZERO_TRANSACTION, saleTransaction, potTransferInResult.getOriginalTransaction(), potTransferOutResult.getOriginalTransaction());
   }
 
   @Test
@@ -288,7 +288,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, ReasonIgnored.IGNORE_TAG, justIgnoreTag, ignoreTagMiddle, ignoreTagUpperCase, ignorePotInTransaction, ignorePotOutTransaction, ignoreTransferIn, ignoreTransferOut);
+    checkIgnoredTransactions(result, SimpleReasonIgnored.IGNORE_TAG, justIgnoreTag, ignoreTagMiddle, ignoreTagUpperCase, ignorePotInTransaction, ignorePotOutTransaction, ignoreTransferIn, ignoreTransferOut);
   }
 
   @Test
@@ -302,7 +302,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, ReasonIgnored.IGNORE_TAG, saleTransaction, transferTransaction);
+    checkIgnoredTransactions(result, SimpleReasonIgnored.IGNORE_TAG, saleTransaction, transferTransaction);
   }
 
   @Test
@@ -356,7 +356,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, ReasonIgnored.NON_GBP, nonGbpTransaction);
+    checkIgnoredTransactions(result, SimpleReasonIgnored.NON_GBP, nonGbpTransaction);
   }
 
   @Test
@@ -411,7 +411,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, ReasonIgnored.IGNORE_TAG, originalTransaction);
+    checkIgnoredTransactions(result, SimpleReasonIgnored.IGNORE_TAG, originalTransaction);
   }
 
   @Test
@@ -437,7 +437,7 @@ public class TransactionProcessorTest {
     checkForNulls(result);
     checkNoSuccessfulResults(result);
     checkNoUnsuccessfulResults(result);
-    checkIgnoredTransactions(result, ReasonIgnored.DECLINED, declinedTransaction);
+    checkIgnoredTransactions(result, SimpleReasonIgnored.DECLINED, declinedTransaction);
   }
 
   private static void checkForUnsuccessfulResults(Set<Transaction> inputSet, TransactionProcessorResult result) {

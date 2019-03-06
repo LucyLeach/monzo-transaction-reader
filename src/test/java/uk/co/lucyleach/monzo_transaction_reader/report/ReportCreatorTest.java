@@ -5,7 +5,7 @@ import uk.co.lucyleach.monzo_transaction_reader.monzo_model.Transaction;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.Money;
 import uk.co.lucyleach.monzo_transaction_reader.output_model.SaleTransaction;
 import uk.co.lucyleach.monzo_transaction_reader.processor.ProcessorResult;
-import uk.co.lucyleach.monzo_transaction_reader.processor.ReasonIgnored;
+import uk.co.lucyleach.monzo_transaction_reader.processor.SimpleReasonIgnored;
 import uk.co.lucyleach.monzo_transaction_reader.processor.TransactionProcessorResult;
 import uk.co.lucyleach.monzo_transaction_reader.utils.Pair;
 
@@ -36,10 +36,10 @@ public class ReportCreatorTest {
     var ignoreTranIn = createOriginalTransaction(137, timeWithHours(14));
 
     var toTest = new TransactionProcessorResult(Set.of(
-        createIgnoredResult(ignoreTranOut, ReasonIgnored.IGNORE_TAG),
-        createIgnoredResult(declineTranOut, ReasonIgnored.DECLINED),
-        createIgnoredResult(declineTranOutEarlier, ReasonIgnored.DECLINED),
-        createIgnoredResult(ignoreTranIn, ReasonIgnored.IGNORE_TAG)
+        createIgnoredResult(ignoreTranOut, SimpleReasonIgnored.IGNORE_TAG),
+        createIgnoredResult(declineTranOut, SimpleReasonIgnored.DECLINED),
+        createIgnoredResult(declineTranOutEarlier, SimpleReasonIgnored.DECLINED),
+        createIgnoredResult(ignoreTranIn, SimpleReasonIgnored.IGNORE_TAG)
     ));
 
     var report = UNDER_TEST.create(toTest, Map.of());
@@ -52,12 +52,12 @@ public class ReportCreatorTest {
     assertEquals(2, report.getIgnoredTransactionsReports().size());
 
     var ignoreTagReport = report.getIgnoredTransactionsReports().get(0);
-    assertEquals(ReasonIgnored.IGNORE_TAG, ignoreTagReport.getReasonIgnored());
+    assertEquals(SimpleReasonIgnored.IGNORE_TAG, ignoreTagReport.getReasonIgnored());
     assertEquals(new Money(-13, "GBP"), ignoreTagReport.getTotalAmount());
     assertEquals(List.of(ignoreTranOut, ignoreTranIn), ignoreTagReport.getIgnoredTransactions());
 
     var declineTagReport = report.getIgnoredTransactionsReports().get(1);
-    assertEquals(ReasonIgnored.DECLINED, declineTagReport.getReasonIgnored());
+    assertEquals(SimpleReasonIgnored.DECLINED, declineTagReport.getReasonIgnored());
     assertEquals(new Money(-820, "GBP"), declineTagReport.getTotalAmount());
     assertEquals(List.of(declineTranOutEarlier, declineTranOut), declineTagReport.getIgnoredTransactions());
   }

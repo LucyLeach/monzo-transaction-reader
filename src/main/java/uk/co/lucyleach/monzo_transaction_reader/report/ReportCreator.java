@@ -92,7 +92,7 @@ public class ReportCreator {
     var reasonToTransactionMap = invertMap(ignoredTransactionToReasonMap);
     return reasonToTransactionMap.entrySet().stream()
         .map(ReportCreator::createIgnoredTransactionReport)
-        .sorted(comparing(IgnoredTransactionsReport::getReasonIgnored))
+        .sorted(comparing(r -> r.getReasonIgnored().toReadableString()))
         .collect(toList());
   }
 
